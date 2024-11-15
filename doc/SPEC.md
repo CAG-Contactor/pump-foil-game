@@ -96,3 +96,53 @@ adminfe -> mainbe: registrera tävlande
 mainbe -> pumpfoil_db: spara ny tävlande
 
 ```
+Lägg tävlande i kö
+-------------------
+```plantuml 
+actor Anders
+actor Tävlande
+participant "Admin Frontend" as adminfe
+participant "Main Backend" as mainbe
+database pumpfoil_db
+
+note over adminfe
+  Visa en sida för att lägga till i kö
+  - lista på tävlande
+  - knapp "Lägg till i kö"
+endnote
+pumpfoil_db -> mainbe: hämta tävlande
+mainbe -> adminfe: tävlande
+Anders -> adminfe: lägg till i kö
+adminfe -> mainbe: lägg till i kö
+mainbe -> pumpfoil_db: lägg till i kö
+```
+
+Starta spel för tävlande
+------------------------
+```plantuml
+actor Anders
+actor Tävlande
+participant "Admin Frontend" as adminfe
+participant "Main Backend" as mainbe
+participant "Game Frontend" as gamefe
+database pumpfoil_db
+
+adminfe -> mainbe: tävlande i kö
+mainbe -> pumpfoil_db: hämta tävlande i kö
+pumpfoil_db -> mainbe: tävlande i kö
+mainbe --> adminfe: tävlande i kö
+note over adminfe
+  Visa en sida för att starta spel
+  - lista på tävlande i kö
+  - knapp "Starta spel"
+endnote
+Anders -> adminfe: starta spel
+adminfe -> mainbe: starta spel
+mainbe -> gamefe: starta spel
+mainbe -> pumpfoil_db: Sätt status pumping för tävlande
+note over gamefe
+  Spel visar klart för start
+end note
+
+== avsluta spel ==
+```
