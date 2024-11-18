@@ -111,16 +111,29 @@ participant "Admin Frontend" as adminfe
 participant "Main Backend" as mainbe
 database pumpfoil_db
 
+Anders -> adminfe: visa sida för att lägga till i kö
+adminfe -> mainbe: hämta tävlande
+mainbe -> pumpfoil_db: läs tävlande
+mainbe <-- pumpfoil_db: tävlande
+mainbe -> pumpfoil_db: läs kö
+mainbe <-- pumpfoil_db: kö
+adminfe <-- mainbe: tävlande förutom de i kö
+Anders <-- adminfe: visar sida
 note over adminfe
-  Visa en sida för att lägga till i kö
-  - lista på tävlande
-  - knapp "Lägg till i kö"
+  Visar en sida för att lägga till i kö
+  - lista på alla tävlande (som inte är i kö)
+  - knapp på varje tävlande "Lägg till i kö"
 endnote
-pumpfoil_db -> mainbe: hämta tävlande
-mainbe -> adminfe: tävlande
-Anders -> adminfe: lägg till i kö
-adminfe -> mainbe: lägg till i kö
-mainbe -> pumpfoil_db: lägg till i kö
+Anders -> adminfe: klicka på "Lägg till i kö"\nför en tävlande
+adminfe -> mainbe: lägg till i kö\ntävlande-ID
+mainbe -> pumpfoil_db: läs upp kö
+note over mainbe
+  Lägg till tävlande i kö
+  
+endnote
+mainbe -> pumpfoil_db: spara uppdaterad kö
+adminfe <-- mainbe: lista med tävlande\nköad tävlande exkluderad
+Anders <-- adminfe: visar lista med tävlande\nköad tävlande exkluderad
 ```
 
 Starta spel för tävlande
@@ -129,22 +142,23 @@ Starta spel för tävlande
 actor Anders
 actor Tävlande
 participant "Admin Frontend" as adminfe
-participant "Main Backend" as mainbe
 participant "Game Frontend" as gamefe
+participant "Main Backend" as mainbe
 database pumpfoil_db
 
-adminfe -> mainbe: tävlande i kö
-mainbe -> pumpfoil_db: hämta tävlande i kö
-pumpfoil_db -> mainbe: tävlande i kö
-mainbe --> adminfe: tävlande i kö
+Anders -> adminfe: visa sida med kö
+adminfe -> mainbe: hämta kö
+mainbe -> pumpfoil_db: läs upp kö
+pumpfoil_db --> mainbe: kö
+mainbe --> adminfe: kö
 note over adminfe
   Visa en sida för att starta spel
   - lista på tävlande i kö
-  - knapp "Starta spel"
+  - knapp "Starta spel" på varje post i kön
 endnote
-Anders -> adminfe: starta spel
-adminfe -> mainbe: starta spel
-mainbe -> gamefe: starta spel
+Anders -> adminfe: klick på "starta spel"\nför en tävlande
+adminfe -> mainbe: starta spel\ntävlande-ID
+mainbe -> gamefe: starta spel\ntävlande
 mainbe -> pumpfoil_db: Sätt status pumping för tävlande
 note over gamefe
   Spel visar klart för start
