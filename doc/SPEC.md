@@ -74,9 +74,11 @@ participant Brödrost
 participant "Main Backend" as mainbe
 database pumpfoil_db
 
-Anders -> adminfe: lägg till ny tävlande
+Anders -> adminfe: visa sida för att lägga till ny tävlande
+Anders <-- adminfe: visar sida
+Anders -> adminfe: tryck knapp "Registrera ny tävlande"
+Anders <-- adminfe: visar formulär
 note over adminfe
-  Visa en sida för ny tävlande
   inmatningsfält för
   - namn
   - epost
@@ -88,11 +90,15 @@ note over Brödrost
   Läser av badge
   Anropar Main Backend
 endnote
-Brödrost -> mainbe: namn&epost
-mainbe -> adminfe: / namn&epost
-adminfe --> Anders: visa namn&epost
-Anders -> adminfe: bekräfta
-adminfe -> mainbe: registrera tävlande  
+Brödrost -> mainbe: POST /badge-data\nnamn & epost
+mainbe -> adminfe: badge-data (WS-event)\nnamn & epost
+note over adminfe
+  - fyller i fält för namn & epost
+  - knapp "Bekräfta"
+endnote  
+adminfe --> Anders: visar namn & epost
+Anders -> adminfe: trycker knapp "Bekräfta"
+adminfe -> mainbe: POST /register-contestan\nnamn & epost  
 mainbe -> pumpfoil_db: spara ny tävlande
 
 ```
