@@ -4,6 +4,7 @@ Se även [Gamla specen](https://docs.google.com/document/d/1iw420msEF6ePYX12Zz6W
 
 Översikt
 --------
+### Appar
 ```plantuml
 rectangle gamefe [
   Game Frontend
@@ -60,6 +61,31 @@ gamefe -- pumpinterface
 adminfe -- mainbe
 gamefe -- mainbe
 toaster -- mainbe
+```
+### Datamodell
+
+```plantuml
+class PumpfoilApplication
+class Contestant {
+  email
+  namn
+}
+class QueueItem {
+  timeAdded
+}
+class LeaderboardItem {
+  splitTime
+  endTime
+}
+class GameState
+
+PumpfoilApplication *-down-> "0,n\nContestants" Contestant
+PumpfoilApplication *-down-> "0,n\nQueue" QueueItem
+PumpfoilApplication *-down-> "1" GameState
+PumpfoilApplication *-down-> "0,n\nLeaderboard" LeaderboardItem
+QueueItem --> "1\nthePumper" Contestant
+GameState --> "0,n\ncurrentPumper" Contestant
+LeaderboardItem "1"  -- "1" Contestant
 ```
 
 API, Main Backend
@@ -166,3 +192,89 @@ end note
 
 == avsluta spel ==
 ```
+
+Genomför och avsluta spel
+-------------------------
+```plantuml
+actor Anders
+actor Tävlande
+participant "Admin Frontend" as adminfe
+participant "Game Frontend" as gamefe
+participant "Main Backend" as mainbe
+participant Pumpberry
+database pumpfoil_db
+
+Tävlande -> Pumpberry: pumpar
+Pumpberry -> gamefe: pump_event\n(hastighet,lutning,graf)
+note over gamefe
+  Startlinje passeras: FE startar klockan
+  Klocka medeltid
+  Klocka sluttid
+endnote
+gamefe -> mainbe: game-finish\n(splitTime,endTime)
+mainbe -> pumpfoil_db: hämta GameState.currentPumper
+note over mainbe
+  Skapa LeaderBoardItem för GameState.currentPumper
+  Sätt splitTime och endTime i leaderBoardItem
+  Nulla GameState.currentPumper
+endnote  
+mainbe -> pumpfoil_db: spara GameState, LeaderBoardItem
+```
+
+Avbryt
+------
+Om man inte blir klar inom 2 min, eller om Anders vill avbryta.
+```plantuml
+actor Anders
+actor Tävlande
+participant "Admin Frontend" as adminfe
+participant "Game Frontend" as gamefe
+participant "Main Backend" as mainbe
+participant Pumpberry
+database pumpfoil_db
+
+alt
+Anders -> adminfe: avbryt
+adminfe -> mainbe: abort
+else
+note over gamefe
+timeout
+endnote
+gamefe -> mainbe: timeout
+end
+mainbe -> pumpfoil_db: hämta GameState
+note over mainbe
+  Nulla GameState.currentPumper
+end note
+mainbe -> pumpfoil_db: spara GameState, LeaderBoardItem
+gamefe <- mainbe: abort 
+note over gamefe
+  Avbryter pågående spel och 
+  sätter tillbaka spelet till 
+  grundtillstånd 
+endnote   
+
+```
+
+Ta bort från kö
+---------------
+```plantuml
+actor Anders
+participant "Admin Frontend" as adminfe
+participant "Main Backend" as mainbe
+database pumpfoil_db
+
+Anders -> adminfe: visa kö
+== Hämta och visa kö ==
+Anders -> adminfe: klicka "ta bort" på en tävlande
+adminfe -> mainbe: remove\ncontestantID
+note over mainbe
+  Ta bort QueueItem för Contestant
+  från DB
+endnote
+mainbe -> pumpfoil_db: uppdatera kö      
+
+
+```
+
+
