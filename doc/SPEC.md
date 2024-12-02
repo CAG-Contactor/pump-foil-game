@@ -111,23 +111,25 @@ note over adminfe
   meddelande: väntar på uppgifter...
   samt knapp "Spara"
 endnote
-Tävlande -> Brödrost: visa badge
-note over Brödrost
-  Läser av badge
-  Anropar Main Backend
-endnote
-Brödrost -> mainbe: POST /badge-data\nnamn & epost
-mainbe -> adminfe: badge-data (WS-event)\nnamn & epost
-note over adminfe
-  - fyller i fält för namn & epost
-  - knapp "Bekräfta"
-endnote  
 adminfe --> Anders: visar namn & epost
 Anders -> adminfe: trycker knapp "Bekräfta"
-adminfe -> mainbe: POST /register-contestan\nnamn & epost  
+adminfe -> mainbe: POST /contestants\nnamn & epost  
+note over mainbe
+  OM email redan är registrerad: 
+    ignorera registrering
+  ANNARS skapa ny tävlande
+endnote
 mainbe -> pumpfoil_db: spara ny tävlande
-
+note over mainbe
+  OM tävlande dessutom redan finns i kön: 
+    ignorera tillägg i kö
+  ANNARS lägg till tävlande i kö 
+endnote
+mainbe -> pumpfoil_db: spara uppdaterad kö
 ```
+## REST-ändpunkter i Main Backend
+* POST /contestants
+
 Lägg tävlande i kö
 -------------------
 ```plantuml 
@@ -138,7 +140,7 @@ participant "Main Backend" as mainbe
 database pumpfoil_db
 
 Anders -> adminfe: visa sida för att lägga till i kö
-adminfe -> mainbe: hämta tävlande
+adminfe -> mainbe: GET /contestants?filter=NOT_ENQUEUED
 mainbe -> pumpfoil_db: läs tävlande
 mainbe <-- pumpfoil_db: tävlande
 mainbe -> pumpfoil_db: läs kö
@@ -151,16 +153,17 @@ note over adminfe
   - knapp på varje tävlande "Lägg till i kö"
 endnote
 Anders -> adminfe: klicka på "Lägg till i kö"\nför en tävlande
-adminfe -> mainbe: lägg till i kö\ntävlande-ID
+adminfe -> mainbe: POST /contestants\nemail&namn
 mainbe -> pumpfoil_db: läs upp kö
 note over mainbe
   Lägg till tävlande i kö
-  
 endnote
 mainbe -> pumpfoil_db: spara uppdaterad kö
 adminfe <-- mainbe: lista med tävlande\nköad tävlande exkluderad
 Anders <-- adminfe: visar lista med tävlande\nköad tävlande exkluderad
 ```
+## REST-ändpunkter i Main Backend
+* GET /contestants?filter={ALL,NOT_ENQUEUED,ENQUEUED}
 
 Starta spel för tävlande
 ------------------------
@@ -173,7 +176,7 @@ participant "Main Backend" as mainbe
 database pumpfoil_db
 
 Anders -> adminfe: visa sida med kö
-adminfe -> mainbe: hämta kö
+adminfe -> mainbe: GET /contestants?filter=ENQUEUED
 mainbe -> pumpfoil_db: läs upp kö
 pumpfoil_db --> mainbe: kö
 mainbe --> adminfe: kö
@@ -183,15 +186,20 @@ note over adminfe
   - knapp "Starta spel" på varje post i kön
 endnote
 Anders -> adminfe: klick på "starta spel"\nför en tävlande
-adminfe -> mainbe: starta spel\ntävlande-ID
+adminfe -> mainbe: POST /game-start\nepost
 mainbe -> gamefe: starta spel\ntävlande
-mainbe -> pumpfoil_db: Sätt status pumping för tävlande
+mainbe -> adminfe: gamestatus: active
+mainbe -> pumpfoil_db: Sätt game status pumping för tävlande\nGameState.currentPumper=contestant
 note over gamefe
   Spel visar klart för start
 end note
 
 == avsluta spel ==
 ```
+
+## REST-ändpunkter i Main Backend
+* POST /game-start
+  * body: epost  
 
 Genomför och avsluta spel
 -------------------------
@@ -211,7 +219,7 @@ note over gamefe
   Klocka medeltid
   Klocka sluttid
 endnote
-gamefe -> mainbe: game-finish\n(splitTime,endTime)
+gamefe -> mainbe: POST /game-finish\n(splitTime,endTime)
 mainbe -> pumpfoil_db: hämta GameState.currentPumper
 note over mainbe
   Skapa LeaderBoardItem för GameState.currentPumper
@@ -219,7 +227,11 @@ note over mainbe
   Nulla GameState.currentPumper
 endnote  
 mainbe -> pumpfoil_db: spara GameState, LeaderBoardItem
+adminfe <- mainbe: gamestatus: idle
 ```
+## REST-ändpunkter i Main Backend
+* POST /game-finish
+  * body: `{splitTime, endTime}` 
 
 Avbryt
 ------
@@ -235,7 +247,7 @@ database pumpfoil_db
 
 alt
 Anders -> adminfe: avbryt
-adminfe -> mainbe: abort
+adminfe -> mainbe: POST /game-abort
 else
 note over gamefe
 timeout
@@ -253,8 +265,11 @@ note over gamefe
   sätter tillbaka spelet till 
   grundtillstånd 
 endnote   
+adminfe <- mainbe: gamestatus: idle
 
 ```
+## REST-ändpunkter i Main Backend
+* POST /game-abort
 
 Ta bort från kö
 ---------------
@@ -267,7 +282,7 @@ database pumpfoil_db
 Anders -> adminfe: visa kö
 == Hämta och visa kö ==
 Anders -> adminfe: klicka "ta bort" på en tävlande
-adminfe -> mainbe: remove\ncontestantID
+adminfe -> mainbe: DELETE /queue?contestant=<email>
 note over mainbe
   Ta bort QueueItem för Contestant
   från DB
