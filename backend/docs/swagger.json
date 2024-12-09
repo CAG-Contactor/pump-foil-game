@@ -152,7 +152,59 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.ContestantDTO"
+                            "$ref": "#/definitions/main.QueueItemDTO"
+                        }
+                    }
+                }
+            }
+        },
+        "/leaderboard": {
+            "get": {
+                "description": "Retrieve the current leaderboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "example"
+                ],
+                "summary": "Get leaderboard",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.LeaderboardEntryDTO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/queue": {
+            "get": {
+                "description": "Get the current queue",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "example"
+                ],
+                "summary": "Get the queue",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.QueueItemDTO"
+                            }
                         }
                     }
                 }
