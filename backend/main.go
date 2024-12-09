@@ -1,70 +1,96 @@
 package main
 
 import (
+	docs "backend/docs"
+	"errors"
+	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	//docs "myserver/docs"
-	//swaggerfiles "github.com/swaggo/files"
-	//ginSwagger "github.com/swaggo/gin-swagger"
-	"net/http"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-type Contestant struct {
+type ContestantDTO struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
 }
 
-type GameResult struct {
+type GameResultDTO struct {
 	SplitTime float64 `json:"splitTime"`
 	EndTime   float64 `json:"endTime"`
 }
 
-type LeaderboardEntry struct {
-	Contestant Contestant `json:"contestant"`
-	GameResult GameResult `json:"result"`
+type LeaderboardEntryDTO struct {
+	Contestant ContestantDTO `json:"contestant"`
+	GameResult GameResultDTO `json:"result"`
 }
 
-type QueueItem struct {
-	Timestamp  int64      `json:"timestamp"`
-	Contestant Contestant `json:"contestant"`
+type QueueItemDTO struct {
+	Timestamp  int64         `json:"timestamp"`
+	Contestant ContestantDTO `json:"contestant"`
 }
 
-var allContestants []Contestant
-var allResults []LeaderboardEntry
-var gameState *QueueItem = nil
-var queue []QueueItem
+var allContestants = []ContestantDTO{
+	{Email: "RJj8W@example.com", Name: "John Doe"},
+	{Email: "J2X9j@example.com", Name: "Jane Doe"},
+}
+var allResults []LeaderboardEntryDTO
+var gameState *QueueItemDTO = nil
+var queue = []QueueItemDTO{}
 
-func getContestants(filter string) []Contestant {
+func getContestants(filter string) []ContestantDTO {
 
 	switch filter {
 	case "NOT_ENQUEUED":
 		return allContestants
 	case "ENQUEUED":
 		return allContestants
-	default:
+	case "ALL":
 		return allContestants
+	default:
+		return nil
 	}
 }
 
-func addContestant(contestant Contestant) error {
+func addContestant(contestant ContestantDTO) (QueueItemDTO, error) {
+	for _, c := range allContestants {
+		if c.Email == contestant.Email {
+			newQueueItem, _ := enqueueContestant(contestant)
+			return newQueueItem, nil
+		}
+	}
 	allContestants = append(allContestants, contestant)
-	return nil
+	newQueueItem, _ := enqueueContestant(contestant)
+	return newQueueItem, nil
 }
 
-func startGame(contestant Contestant) error {
-	if gameState == nil {
-		gameState = &QueueItem{time.Now().UnixNano(), contestant}
+func enqueueContestant(contestant ContestantDTO) (QueueItemDTO, error) {
+	newQueueItem := QueueItemDTO{time.Now().UnixNano(), contestant}
+	queue = append(queue, newQueueItem)
+	return newQueueItem, nil
+}
+
+func startGame() error {
+	if len(queue) > 0 {
+		queueItem := queue[0]
+
+		if gameState == nil {
+			gameState = &queueItem
+			return nil
+		} else {
+			return errors.New("game is already in progress")
+		}
+
+	} else {
+		return errors.New("queue is empty")
 	}
-
-	return nil
 }
 
-func finishGame(result GameResult) []LeaderboardEntry {
+func finishGame(result GameResultDTO) []LeaderboardEntryDTO {
 
-	leaderboardEntry := LeaderboardEntry{gameState.Contestant, result}
+	leaderboardEntry := LeaderboardEntryDTO{gameState.Contestant, result}
 
 	allResults = append(allResults, leaderboardEntry)
 	return allResults
@@ -86,51 +112,73 @@ func deleteQueueItem(timestamp int64) error {
 }
 
 // @BasePath /api/v1
-// PingExample godoc
-// @Summary ping example
-// @Schemes
-// @Description do ping
+
+// getContestantsHandler godoc
+// @Summary Get contestants
+// @Schemes http https
+// @Description Get contestants based on filter one of ALL, NOT_ENQUEUED or ENQUEUED
 // @Tags example
 // @Accept json
 // @Produce json
-// @Success 200 {string} Helloworld
-// @Router /example/helloworld [get]
-func Helloworld(g *gin.Context) {
-	g.JSON(http.StatusOK, "helloworld")
-}
-
+// @Param filter query string  false  "One of ALL, NOT_ENQUEUED or ENQUEUED. If omitted ALL is used."
+// @Success 200 {array} ContestantDTO
+// @Router /contestants [get]
 func getContestantsHandler(g *gin.Context) {
 	// GET /contestants?filter={ALL,NOT_ENQUEUED,ENQUEUED}
 	filter := g.DefaultQuery("filter", "ALL")
 
 	contestants := getContestants(filter)
+	if contestants == nil {
+		g.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
 	g.JSON(http.StatusOK, contestants)
 }
 
+// addContestantHandler godoc
+// @Summary Add a contestant
+// @Schemes
+// @Description Add a contestant to the database
+// @Tags example
+// @Accept json
+// @Produce json
+// @Param contestant body ContestantDTO true "Contestant to add"
+// @Success 200 {object} QueueItemDTO
+// @Router /contestants [post]
 func addContestantHandler(g *gin.Context) {
-	contestant := Contestant{}
+	contestant := ContestantDTO{}
 	if err := g.BindJSON(&contestant); err != nil {
 		g.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	if err := addContestant(contestant); err != nil {
+	newQueueItem, err := addContestant(contestant)
+	if err != nil {
 		g.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	g.JSON(http.StatusOK, contestant)
+	g.JSON(http.StatusOK, newQueueItem)
 }
 
+// gameStartHandler godoc
+// @Summary Start a game for a contestant
+// @Schemes
+// @Description Start a game for a contestant
+// @Tags example
+// @Accept json
+// @Produce json
+// @Success 200 {object} ContestantDTO
+// @Router /game-start [post]
 func gameStartHandler(g *gin.Context) {
-	contestant := Contestant{}
+	contestant := ContestantDTO{}
 	if err := g.BindJSON(&contestant); err != nil {
 		g.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	if err := startGame(contestant); err != nil {
+	if err := startGame(); err != nil {
 		g.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -138,8 +186,18 @@ func gameStartHandler(g *gin.Context) {
 	g.JSON(http.StatusOK, contestant)
 }
 
+// gameFinishHandler godoc
+// @Summary Finish a game and save the result
+// @Schemes
+// @Description Finish a game and save the result in the database
+// @Tags example
+// @Accept json
+// @Produce json
+// @Param result body GameResultDTO true "Result of the game"
+// @Success 200 {array} LeaderboardEntryDTO
+// @Router /game-finish [post]
 func gameFinishHandler(g *gin.Context) {
-	gameResult := GameResult{}
+	gameResult := GameResultDTO{}
 	if err := g.BindJSON(&gameResult); err != nil {
 		g.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -150,6 +208,16 @@ func gameFinishHandler(g *gin.Context) {
 	g.JSON(http.StatusOK, leaderboard)
 }
 
+// gameAbortHandler godoc
+// @Summary Abort the current game
+// @Schemes
+// @Description Abort the ongoing game and respond with a status message
+// @Tags example
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "aborted"
+// @Failure 500 {object} error
+// @Router /game-abort [post]
 func gameAbortHandler(g *gin.Context) {
 
 	if err := abortGame(); err != nil {
@@ -160,6 +228,17 @@ func gameAbortHandler(g *gin.Context) {
 	g.JSON(http.StatusOK, "aborted")
 }
 
+// deleteQueueItemHandler godoc
+// @Summary Delete a contestant from the queue
+// @Schemes
+// @Description Delete a contestant from the queue
+// @Tags example
+// @Accept json
+// @Produce json
+// @Param timestamp path int64 true "timestamp of the contestant to delete"
+// @Success 200
+// @Failure 500 {object} error
+// @Router /queue/{timestamp} [delete]
 func deleteQueueItemHandler(g *gin.Context) {
 	timestampString := g.Param("timestamp")
 	timestamp, err := strconv.ParseInt(timestampString, 10, 64)
@@ -174,9 +253,10 @@ func deleteQueueItemHandler(g *gin.Context) {
 	g.Status(http.StatusOK)
 }
 
+// main starts a gin server and maps all the available endpoints
 func main() {
 	r := gin.Default()
-	//docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.BasePath = "/api/v1"
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/contestants", getContestantsHandler)
@@ -184,8 +264,8 @@ func main() {
 		v1.POST("/game-start", gameStartHandler)
 		v1.POST("/game-finish", gameFinishHandler)
 		v1.POST("/game-abort", gameAbortHandler)
-		v1.DELETE("/queue-item/:timestamp", Helloworld)
+		v1.DELETE("/queue-item/:timestamp", deleteQueueItemHandler)
 	}
-	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.Run(":8080")
 }
