@@ -56,7 +56,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Add a contestant to the database
+      description: Add a contestant to the database, the contestant will also be added
+        to the queue
       parameters:
       - description: Contestant to add
         in: body
@@ -120,7 +121,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Start a game for a contestant
+      description: Start a game for a contestant if the optional query parameter timestamp
+        is provided the specific queueitem will be started otherwise the first item
+        in the queue will be started
+      parameters:
+      - description: imestamp of queueitem to start
+        in: query
+        name: timestamp
+        type: string
       produces:
       - application/json
       responses:
@@ -169,12 +177,11 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete a contestant from the queue
+      description: Delete a queue item from the queue
       parameters:
-      - description: timestamp of the contestant to delete
+      - description: timestamp of the queue item to delete
         in: path
         name: timestamp
-        required: true
         type: integer
       produces:
       - application/json

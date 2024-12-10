@@ -113,24 +113,37 @@ func enqueueContestant(contestant ContestantDTO) (QueueItemDTO, error) {
 	return newQueueItem, nil
 }
 
-// startGame initiates a game with the first contestant in the queue if the game is not already in progress.
-// It removes the contestant from the queue and sets the game state.
-// Returns an error if the queue is empty or if a game is already in progress.
-func startGame() (QueueItemDTO, error) {
+// startGame starts a game with an optional timestamp to start a game for any entry in the queue.
+// If no timestamp is given, the function starts a game for the first item in the queue.
+// If the given timestamp is not found in the queue, the function returns an error.
+// If the game is already in progress, the function returns an error.
+// If the queue is empty, the function returns an error.
+func startGame(timestamp *int64) (*QueueItemDTO, error) {
 	// Check if the queue is not empty
 	if len(queue) > 0 {
 		// If the game is not in progress, start it with the first item in the queue
 		if gameState == nil {
-			queueItem := queue[0]
-			queue = queue[1:]
-			gameState = &queueItem
-			return queueItem, nil
+			if timestamp != nil {
+				for i, entry := range queue {
+					if entry.Timestamp == *timestamp {
+						gameState = &entry
+						queue = append(queue[:i], queue[i+1:]...)
+						return &entry, nil
+					}
+				}
+				return nil, errors.New("timestamp not found in queue")
+			} else {
+				queueItem := queue[0]
+				queue = queue[1:]
+				gameState = &queueItem
+				return &queueItem, nil
+			}
 		} else {
-			return *gameState, errors.New("game is already in progress")
+			return gameState, errors.New("game is already in progress")
 		}
 
 	} else {
-		return *gameState, errors.New("queue is empty")
+		return gameState, errors.New("queue is empty")
 	}
 }
 
@@ -213,7 +226,7 @@ func getContestantsHandler(g *gin.Context) {
 // addContestantHandler godoc
 // @Summary Add a contestant
 // @Schemes
-// @Description Add a contestant to the database
+// @Description Add a contestant to the database, the contestant will also be added to the queue
 // @Tags example
 // @Accept json
 // @Produce json
@@ -239,26 +252,37 @@ func addContestantHandler(g *gin.Context) {
 // gameStartHandler godoc
 // @Summary Start a game for a contestant
 // @Schemes
-// @Description Start a game for a contestant
+// @Description Start a game for a contestant if the optional query parameter timestamp is provided the specific queueitem will be started otherwise the first item in the queue will be started
 // @Tags example
 // @Accept json
 // @Produce json
+// @Param timestamp query string false "imestamp of queueitem to start"
 // @Success 200 {object} QueueItemDTO
 // @Router /game-start [post]
 func gameStartHandler(g *gin.Context) {
-	/*contestant := ContestantDTO{}
-	if err := g.BindJSON(&contestant); err != nil {
-		g.AbortWithError(http.StatusBadRequest, err)
-		return
-	}*/
+	timestampString := g.Query("timestamp")
+	if timestampString != "" {
+		timestamp, err := strconv.ParseInt(timestampString, 10, 64)
+		if err != nil {
+			g.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		queueItem, err := startGame(&timestamp)
+		if err != nil {
+			g.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
 
-	queueItem, err := startGame()
-	if err != nil {
-		g.AbortWithError(http.StatusInternalServerError, err)
-		return
+		g.JSON(http.StatusOK, queueItem)
+	} else {
+		queueItem, err := startGame(nil)
+		if err != nil {
+			g.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		g.JSON(http.StatusOK, queueItem)
 	}
-
-	g.JSON(http.StatusOK, queueItem)
 }
 
 // gameFinishHandler godoc
@@ -323,18 +347,17 @@ func getQueueHandler(g *gin.Context) {
 // deleteQueueItemHandler godoc
 // @Summary Delete a contestant from the queue
 // @Schemes
-// @Description Delete a contestant from the queue
+// @Description Delete a queue item from the queue
 // @Tags example
 // @Accept json
 // @Produce json
-// @Param timestamp path int64 true "timestamp of the contestant to delete"
+// @Param timestamp path int64 false "timestamp of the queue item to delete"
 // @Success 200
 // @Failure 500 {object} error
 // @Router /queue/{timestamp} [delete]
 func deleteQueueItemHandler(g *gin.Context) {
 	timestampString := g.Param("timestamp")
 	timestamp, err := strconv.ParseInt(timestampString, 10, 64)
-
 	if err != nil {
 		g.AbortWithError(http.StatusInternalServerError, err)
 		return

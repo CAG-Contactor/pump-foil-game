@@ -50,7 +50,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Add a contestant to the database",
+                "description": "Add a contestant to the database, the contestant will also be added to the queue",
                 "consumes": [
                     "application/json"
                 ],
@@ -148,7 +148,7 @@ const docTemplate = `{
         },
         "/game-start": {
             "post": {
-                "description": "Start a game for a contestant",
+                "description": "Start a game for a contestant if the optional query parameter timestamp is provided the specific queueitem will be started otherwise the first item in the queue will be started",
                 "consumes": [
                     "application/json"
                 ],
@@ -159,6 +159,14 @@ const docTemplate = `{
                     "example"
                 ],
                 "summary": "Start a game for a contestant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "imestamp of queueitem to start",
+                        "name": "timestamp",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -223,7 +231,7 @@ const docTemplate = `{
         },
         "/queue/{timestamp}": {
             "delete": {
-                "description": "Delete a contestant from the queue",
+                "description": "Delete a queue item from the queue",
                 "consumes": [
                     "application/json"
                 ],
@@ -237,10 +245,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "timestamp of the contestant to delete",
+                        "description": "timestamp of the queue item to delete",
                         "name": "timestamp",
-                        "in": "path",
-                        "required": true
+                        "in": "path"
                     }
                 ],
                 "responses": {
