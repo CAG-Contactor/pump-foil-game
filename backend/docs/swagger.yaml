@@ -1,0 +1,218 @@
+basePath: /api/v1
+definitions:
+  main.ContestantDTO:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  main.GameResultDTO:
+    properties:
+      endTime:
+        type: number
+      splitTime:
+        type: number
+    type: object
+  main.LeaderboardEntryDTO:
+    properties:
+      contestant:
+        $ref: '#/definitions/main.ContestantDTO'
+      result:
+        $ref: '#/definitions/main.GameResultDTO'
+    type: object
+  main.QueueItemDTO:
+    properties:
+      contestant:
+        $ref: '#/definitions/main.ContestantDTO'
+      timestamp:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /contestants:
+    get:
+      consumes:
+      - application/json
+      description: Get contestants based on filter one of ALL, NOT_ENQUEUED or ENQUEUED
+      parameters:
+      - description: One of ALL, NOT_ENQUEUED or ENQUEUED. If omitted ALL is used.
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.ContestantDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Get contestants
+      tags:
+      - example
+    post:
+      consumes:
+      - application/json
+      description: Add a contestant to the database, the contestant will also be added
+        to the queue
+      parameters:
+      - description: Contestant to add
+        in: body
+        name: contestant
+        required: true
+        schema:
+          $ref: '#/definitions/main.ContestantDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.QueueItemDTO'
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Add a contestant
+      tags:
+      - example
+  /game-abort:
+    post:
+      consumes:
+      - application/json
+      description: Abort the ongoing game and respond with a status message
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: aborted
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Abort the current game
+      tags:
+      - example
+  /game-finish:
+    post:
+      consumes:
+      - application/json
+      description: Finish a game and save the result in the database
+      parameters:
+      - description: Result of the game
+        in: body
+        name: result
+        required: true
+        schema:
+          $ref: '#/definitions/main.GameResultDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.LeaderboardEntryDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Finish a game and save the result
+      tags:
+      - example
+  /game-start:
+    post:
+      consumes:
+      - application/json
+      description: Start a game for a contestant if the optional query parameter timestamp
+        is provided the specific queueitem will be started otherwise the first item
+        in the queue will be started
+      parameters:
+      - description: imestamp of queueitem to start
+        in: query
+        name: timestamp
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.QueueItemDTO'
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Start a game for a contestant
+      tags:
+      - example
+  /leaderboard:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the current leaderboard
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.LeaderboardEntryDTO'
+            type: array
+      summary: Get leaderboard
+      tags:
+      - example
+  /queue:
+    get:
+      consumes:
+      - application/json
+      description: Get the current queue
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.QueueItemDTO'
+            type: array
+      summary: Get the queue
+      tags:
+      - example
+  /queue/{timestamp}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a queue item from the queue
+      parameters:
+      - description: timestamp of the queue item to delete
+        in: path
+        name: timestamp
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete a contestant from the queue
+      tags:
+      - example
+swagger: "2.0"
