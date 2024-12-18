@@ -50,6 +50,9 @@ paths:
             items:
               $ref: '#/definitions/main.ContestantDTO'
             type: array
+        "400":
+          description: Bad Request
+          schema: {}
       summary: Get contestants
       tags:
       - example
@@ -72,6 +75,12 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/main.QueueItemDTO'
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
       summary: Add a contestant
       tags:
       - example
@@ -114,6 +123,12 @@ paths:
             items:
               $ref: '#/definitions/main.LeaderboardEntryDTO'
             type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
       summary: Finish a game and save the result
       tags:
       - example
@@ -136,6 +151,9 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/main.QueueItemDTO'
+        "500":
+          description: Internal Server Error
+          schema: {}
       summary: Start a game for a contestant
       tags:
       - example
@@ -188,6 +206,9 @@ paths:
       responses:
         "200":
           description: OK
+        "404":
+          description: Not Found
+          schema: {}
         "500":
           description: Internal Server Error
           schema: {}

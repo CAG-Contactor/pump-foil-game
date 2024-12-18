@@ -209,6 +209,7 @@ func deleteQueueItem(timestamp int64) error {
 // @Produce json
 // @Param filter query string  false  "One of ALL, NOT_ENQUEUED or ENQUEUED. If omitted ALL is used."
 // @Success 200 {array} ContestantDTO
+// @Failure 400 {object} error
 // @Router /contestants [get]
 func getContestantsHandler(g *gin.Context) {
 	// GET /contestants?filter={ALL,NOT_ENQUEUED,ENQUEUED}
@@ -216,7 +217,7 @@ func getContestantsHandler(g *gin.Context) {
 
 	contestants := getContestants(filter)
 	if contestants == nil {
-		g.AbortWithStatus(http.StatusBadRequest)
+		g.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid filter"})
 		return
 	}
 
@@ -232,6 +233,8 @@ func getContestantsHandler(g *gin.Context) {
 // @Produce json
 // @Param contestant body ContestantDTO true "Contestant to add"
 // @Success 200 {object} QueueItemDTO
+// @Failure 400 {object} error
+// @Failure 500 {object} error
 // @Router /contestants [post]
 func addContestantHandler(g *gin.Context) {
 	contestant := ContestantDTO{}
@@ -258,6 +261,7 @@ func addContestantHandler(g *gin.Context) {
 // @Produce json
 // @Param timestamp query string false "imestamp of queueitem to start"
 // @Success 200 {object} QueueItemDTO
+// @Failure 500 {object} error
 // @Router /game-start [post]
 func gameStartHandler(g *gin.Context) {
 	timestampString := g.Query("timestamp")
@@ -294,6 +298,8 @@ func gameStartHandler(g *gin.Context) {
 // @Produce json
 // @Param result body GameResultDTO true "Result of the game"
 // @Success 200 {array} LeaderboardEntryDTO
+// @Failure 400 {object} error
+// @Failure 500 {object} error
 // @Router /game-finish [post]
 func gameFinishHandler(g *gin.Context) {
 	gameResult := GameResultDTO{}
@@ -354,6 +360,7 @@ func getQueueHandler(g *gin.Context) {
 // @Param timestamp path int64 false "timestamp of the queue item to delete"
 // @Success 200
 // @Failure 500 {object} error
+// @Failure 404 {object} error
 // @Router /queue/{timestamp} [delete]
 func deleteQueueItemHandler(g *gin.Context) {
 	timestampString := g.Param("timestamp")

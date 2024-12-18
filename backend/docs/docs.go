@@ -46,6 +46,10 @@ const docTemplate = `{
                                 "$ref": "#/definitions/main.ContestantDTO"
                             }
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
                     }
                 }
             },
@@ -78,6 +82,14 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/main.QueueItemDTO"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
                     }
                 }
             }
@@ -142,6 +154,14 @@ const docTemplate = `{
                                 "$ref": "#/definitions/main.LeaderboardEntryDTO"
                             }
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
                     }
                 }
             }
@@ -173,6 +193,10 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/main.QueueItemDTO"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
                     }
                 }
             }
@@ -253,6 +277,10 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
