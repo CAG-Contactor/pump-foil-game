@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import se.cag.jfocus.badgescanner.application.RacingQueueRepo;
 import se.cag.jfocus.badgescanner.domain.Player;
 import se.cag.jfocus.badgescanner.spring.BackendApplicationConfiguration;
-import se.cag.jfocus.badgescanner.spring.integration.dto.NewUser;
+import se.cag.jfocus.badgescanner.spring.integration.dto.BadgeDTO;
 
 import java.net.URI;
 
@@ -26,7 +26,7 @@ public class RacingQueueRepoApi implements RacingQueueRepo {
     @Override
     public void enqueuePlayer(Player player) {
         log.info("Enqueue {}", player.name());
-        RequestEntity<NewUser> body = RequestEntity.post(URI.create(configuration.getEnqueueUrl()))
+        RequestEntity<BadgeDTO> body = RequestEntity.post(URI.create(configuration.getEnqueueUrl()))
                 .body(toNewUser(player));
         try {
             template.exchange(body, Void.class);
@@ -35,12 +35,11 @@ public class RacingQueueRepoApi implements RacingQueueRepo {
         }
     }
 
-    private NewUser toNewUser(Player player) {
-        return NewUser.builder()
-                .userId("fakeId")
-                .displayName(player.name())
-                .organisation(player.company())
-                .password("112233")
+    private BadgeDTO toNewUser(Player player) {
+        return BadgeDTO.builder()
+                .email(player.email())
+                .name(player.name())
+                .company(player.company())
                 .build();
     }
 }
