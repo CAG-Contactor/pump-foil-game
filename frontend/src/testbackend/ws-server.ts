@@ -3,7 +3,8 @@ import readline from 'readline';
 import {
   AbortGameMessage,
   ControllerUpdateMessage,
-  InitGameMessage, PingMessage
+  InitGameMessage,
+  PingMessage
 } from "../app/components/pump-foil-game/server-socket";
 
 const wss = new WebSocketServer({port: 3001});
@@ -32,7 +33,6 @@ wss.on('connection', (ws) => {
   ws.on('message', function message(data) {
     console.log('received: %s', data);
     if (client) {
-      const object = JSON.parse(data.toString());
       client.handle(data);
     }
   });

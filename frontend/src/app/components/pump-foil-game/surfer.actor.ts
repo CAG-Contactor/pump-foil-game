@@ -1,5 +1,4 @@
 import {Actor, Canvas, Collider, CollisionContact, CollisionType, Engine, Input, Side, vec} from "excalibur";
-import {Port} from "./port.actor";
 
 export class Surfer extends Actor {
   private speed = 0.0;
