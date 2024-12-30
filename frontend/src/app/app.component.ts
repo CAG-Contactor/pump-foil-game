@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
 import {initFlowbite} from 'flowbite';
+import {ServerSocket} from "./components/pump-foil-game/server-socket";
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ import {initFlowbite} from 'flowbite';
 })
 export class AppComponent implements OnInit {
     ngOnInit(): void {
-        initFlowbite();
+      initFlowbite();
     }
 }
+

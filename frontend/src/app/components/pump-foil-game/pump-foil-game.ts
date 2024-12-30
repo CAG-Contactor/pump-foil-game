@@ -2,11 +2,19 @@ import {Engine} from "excalibur";
 import {Surfer} from "./surfer.actor";
 import {addPorts, addWalls, Ports} from "./main.scene";
 import {portEvents, PortEvents, PortPassedEvent} from "./port.actor";
+import {AbortGameMessage, ControllerUpdateMessage, InitGameMessage, ServerSocket} from "./server-socket";
 
 
 export class PumpFoilGame {
   private startTimeStamp = 0;
   private endTimeStamp = 0;
+  private readonly serverSocket: ServerSocket ;
+
+  constructor() {
+    this.serverSocket = new ServerSocket(this);
+    this.serverSocket.connectWebSocket();
+  }
+
   init(): void {
     // If no dimensions are specified the game will fit to the screen.
     const game = new Engine({
@@ -29,6 +37,18 @@ export class PumpFoilGame {
 
     // Start the engine to begin the game.
     game.start();
+  }
+
+  armGame(gameEvent: InitGameMessage): void {
+    console.log('armGame', gameEvent);
+  }
+
+  handleControllerEvent(gameEvent: ControllerUpdateMessage) {
+    console.log('handleControllerEvent', gameEvent);
+  }
+
+  abortGame(gameEvent: AbortGameMessage) {
+    console.log('abortGame', gameEvent);
   }
 }
 
