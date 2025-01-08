@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -285,6 +286,7 @@ func gameStartHandler(g *gin.Context) {
 			return
 		}
 
+		sendNotification("started")
 		g.JSON(http.StatusOK, queueItem)
 	}
 }
@@ -314,6 +316,8 @@ func gameFinishHandler(g *gin.Context) {
 		return
 	}
 
+	sendNotification("stopped")
+
 	g.JSON(http.StatusOK, leaderboard)
 }
 
@@ -333,6 +337,8 @@ func gameAbortHandler(g *gin.Context) {
 		g.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	sendNotification("stopped")
 
 	g.JSON(http.StatusOK, "aborted")
 }
@@ -392,6 +398,30 @@ func getLeaderboardHandler(g *gin.Context) {
 	g.JSON(http.StatusOK, allResults)
 }
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+var websockets []*websocket.Conn
+
+func websocketHandler(g *gin.Context) {
+	conn, err := upgrader.Upgrade(g.Writer, g.Request, nil)
+	if err != nil {
+		return
+	}
+	//defer conn.Close()
+	websockets = append(websockets, conn)
+}
+
+func sendNotification(notification string) {
+	for _, ws := range websockets {
+		ws.WriteMessage(websocket.TextMessage, []byte(notification))
+	}
+}
+
 // main starts a gin server and maps all the available endpoints
 func main() {
 	r := gin.Default()
@@ -406,6 +436,7 @@ func main() {
 		v1.GET("/queue", getQueueHandler)
 		v1.DELETE("/queue/:timestamp", deleteQueueItemHandler)
 		v1.GET("/leaderboard", getLeaderboardHandler)
+		r.GET("/ws", websocketHandler)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.Run(":8080")

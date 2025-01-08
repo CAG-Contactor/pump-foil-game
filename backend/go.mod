@@ -4,6 +4,8 @@ go 1.22.1
 
 require github.com/swaggo/gin-swagger v1.6.0
 
+require github.com/gorilla/websocket v1.5.3 // indirect
+
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
