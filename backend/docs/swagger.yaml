@@ -1,5 +1,19 @@
 basePath: /api/v1
 definitions:
+  db.ContestantDTO:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  db.QueueItemDTO:
+    properties:
+      contestant:
+        $ref: '#/definitions/db.ContestantDTO'
+      timestamp:
+        type: integer
+    type: object
   main.ContestantDTO:
     properties:
       email:
@@ -186,7 +200,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.QueueItemDTO'
+              $ref: '#/definitions/db.QueueItemDTO'
             type: array
       summary: Get the queue
       tags:
@@ -215,4 +229,10 @@ paths:
       summary: Delete a contestant from the queue
       tags:
       - example
+  /ws:
+    get:
+      description: Handle websocket connections. Websocket clients can connectusing
+        the url ws://localhost:8080/api/v1/ws
+      responses: {}
+      summary: Handle websocket connections
 swagger: "2.0"
