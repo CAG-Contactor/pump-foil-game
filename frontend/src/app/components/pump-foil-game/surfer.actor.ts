@@ -73,4 +73,10 @@ export class Surfer extends Actor {
     // Bounce back
     this.speed = -15;
   }
+
+  reset(xPos: number, yPos: number) {
+    this.pos.setTo(xPos, yPos);
+    this.speed = 0.0;
+    this.direction = 0.0;
+  }
 }

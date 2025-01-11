@@ -5,7 +5,7 @@ import {
   ControllerUpdateMessage,
   InitGameMessage,
   PingMessage
-} from "../app/components/pump-foil-game/game-control-server-socket";
+} from "../app/components/pump-foil-game/server-socket-base";
 
 const wss = new WebSocketServer({port: 3001});
 

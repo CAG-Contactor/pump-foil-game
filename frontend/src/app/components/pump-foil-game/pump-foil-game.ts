@@ -17,11 +17,15 @@ export interface GameController {
 }
 
 export class PumpFoilGame implements GameAdminstration, GameController {
+  private static readonly SURFER_X_INIT = 100;
+  private static readonly SURFER_Y_INIT = 550;
+
   private startTimeStamp = 0;
   private endTimeStamp = 0;
   private readonly gameControlServerSocket: GameControlServerSocket ;
   private readonly gameAdminServerSocket: GameAdminServerSocket ;
   private game!: Engine<any>;
+  private surfer!: Surfer;
 
   constructor() {
     this.gameControlServerSocket = new GameControlServerSocket(this);
@@ -33,7 +37,8 @@ export class PumpFoilGame implements GameAdminstration, GameController {
     this.game = new Engine({
       canvasElementId: "pump-foil-game",
     });
-    this.game.add(new Surfer(100,550, 0))
+    this.surfer = new Surfer(PumpFoilGame.SURFER_X_INIT,PumpFoilGame.SURFER_Y_INIT, 0);
+    this.game.add(this.surfer)
     addWalls(this.game);
     addPorts(this.game);
 
@@ -53,8 +58,7 @@ export class PumpFoilGame implements GameAdminstration, GameController {
   }
 
   private resetGame() {
-    this.game.dispose();
-    this.init();
+    this.surfer.reset(PumpFoilGame.SURFER_X_INIT, PumpFoilGame.SURFER_Y_INIT)
   }
 
   armGame(gameEvent: InitGameMessage): void {
