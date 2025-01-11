@@ -1,11 +1,11 @@
-import {WebSocket, WebSocketServer} from 'ws';
 import readline from 'readline';
+import {WebSocket, WebSocketServer} from 'ws';
 import {
   AbortGameMessage,
   ControllerUpdateMessage,
   InitGameMessage,
   PingMessage
-} from "../app/components/pump-foil-game/server-socket";
+} from "../app/components/pump-foil-game/game-control-server-socket";
 
 const wss = new WebSocketServer({port: 3001});
 
@@ -48,6 +48,7 @@ wss.on('connection', (ws) => {
 class KeyPressHandler {
   private readonly bufferSize: number = 5;
   private readonly fifoBuffer: Array<number> = [];
+  private direction = 0.0
 
   constructor() {
     readline.emitKeypressEvents(process.stdin);
@@ -58,11 +59,17 @@ class KeyPressHandler {
         case 'q':
           process.exit();
           break;
-        case 'x':
+        case 'space':
           this.fifoBuffer.push(Date.now());
           if (this.fifoBuffer.length > this.bufferSize) {
             this.fifoBuffer.shift();
           }
+          break;
+        case 'right':
+          this.direction = this.direction + 5;
+          break;
+        case 'left':
+          this.direction = this.direction - 5;
           break;
         case "i":
           if (client) {
@@ -90,7 +97,7 @@ class KeyPressHandler {
       const frequency = 2 / (delta_t / 1000)
       console.log('key press frequency:', frequency, " hz", "delta_t:", delta_t, "delta_n:", this.fifoBuffer.length);
       if (client) {
-        client.send({type: "ControllerUpdate", frequency: frequency, tilt: 0.0} as ControllerUpdateMessage);
+        client.send({type: "ControllerUpdate", frequency: frequency, tilt: this.direction} as ControllerUpdateMessage);
       }
     } else if (this.fifoBuffer.length > 0) {
       console.log('key press frequency: 0 hz');
@@ -103,6 +110,10 @@ class KeyPressHandler {
       this.fifoBuffer.shift();
     }
   }
+
+  start() {
+    console.log('started key press handler');
+  }
 }
 
 setInterval(() => {
@@ -112,5 +123,6 @@ setInterval(() => {
 }, 10000);
 
 const keyPressHandler = new KeyPressHandler();
+keyPressHandler.start();
 
 console.log('WebSocket server running on ws://localhost:3001');
