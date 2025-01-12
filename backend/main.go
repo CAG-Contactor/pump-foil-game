@@ -394,6 +394,8 @@ func getLeaderboardHandler(g *gin.Context) {
 
 // main starts a gin server and maps all the available endpoints
 func main() {
+	panic("Claes Gille! Kontakta Jfokus-gänget, så vi kan stämma av funktionaliteten! " +
+		"Vi ses på kontoret måndag 13/1" + "Halleluja!")
 	r := gin.Default()
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	v1 := r.Group("/api/v1")
