@@ -3,12 +3,14 @@ package main
 import (
 	"backend/db"
 	docs "backend/docs"
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/spf13/viper"
@@ -227,7 +229,7 @@ func gameStartHandler(g *gin.Context) {
 			g.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
-
+		notifyInitGame(*queueItem)
 		g.JSON(http.StatusOK, queueItem)
 	} else {
 		queueItem, err := startGame(nil)
@@ -236,7 +238,7 @@ func gameStartHandler(g *gin.Context) {
 			return
 		}
 
-		sendNotification("started")
+		notifyInitGame(*queueItem)
 		g.JSON(http.StatusOK, queueItem)
 	}
 }
@@ -389,6 +391,22 @@ func sendNotification(notification string) {
 	}
 }
 
+type InitGameNotification struct {
+	Type   string
+	Userid string `json:"userid"`
+	Name   string `json:"name"`
+}
+
+func notifyInitGame(queueItem db.QueueItemDTO) {
+	notification := InitGameNotification{
+		Type:   "InitGame",
+		Userid: queueItem.Contestant.Email,
+		Name:   queueItem.Contestant.Name,
+	}
+	notificationJson, _ := json.Marshal(notification)
+	sendNotification(string(notificationJson))
+}
+
 // main starts a gin server and maps all the available endpoints
 func main() {
 	var err error
@@ -412,6 +430,7 @@ func main() {
 	log.Println("Connected to database using url:", dbUrl)
 
 	r := gin.Default()
+	r.Use(cors.Default())
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	v1 := r.Group("/api/v1")
 	{
