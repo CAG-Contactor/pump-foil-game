@@ -4,36 +4,18 @@ import (
 	"backend/db"
 	docs "backend/docs"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/spf13/viper"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-/*type ContestantDTO struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
-}
-
-type GameResultDTO struct {
-	SplitTime float64 `json:"splitTime"`
-	EndTime   float64 `json:"endTime"`
-}
-
-type LeaderboardEntryDTO struct {
-	Contestant ContestantDTO `json:"contestant"`
-	GameResult GameResultDTO `json:"result"`
-}
-
-type QueueItemDTO struct {
-	Timestamp  int64         `json:"timestamp"`
-	Contestant ContestantDTO `json:"contestant"`
-}*/
 
 var gameState *db.QueueItemDTO = nil
 var dbClient *mongo.Client
@@ -410,11 +392,24 @@ func sendNotification(notification string) {
 // main starts a gin server and maps all the available endpoints
 func main() {
 	var err error
-	dbClient, err = db.ConnectDB()
+
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	err = viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+	dbUrl := viper.GetString("mongodb.url")
+	port := viper.GetString("port")
+
+	dbClient, err = db.ConnectDB(dbUrl)
 	if err != nil {
 		panic(err)
 	}
 	defer db.CloseDB(dbClient)
+
+	log.Println("Connected to database using url:", dbUrl)
 
 	r := gin.Default()
 	docs.SwaggerInfo.BasePath = "/api/v1"
@@ -431,5 +426,5 @@ func main() {
 		v1.GET("/ws", websocketHandler)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.Run(":8080")
+	r.Run(":" + port)
 }

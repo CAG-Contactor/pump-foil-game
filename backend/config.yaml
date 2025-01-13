@@ -1,0 +1,3 @@
+port: 8080
+mongodb:
+  url: "mongodb://root:MyPassword@localhost:27017"

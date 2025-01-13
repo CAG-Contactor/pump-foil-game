@@ -64,8 +64,8 @@ const (
 	GetContestantsNotEnqueued
 )
 
-func ConnectDB() (*mongo.Client, error) {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://root:MyPassword@localhost:27017"))
+func ConnectDB(url string) (*mongo.Client, error) {
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(url))
 	if err != nil {
 		return nil, err
 	}
