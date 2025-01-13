@@ -14,12 +14,24 @@ Det verkat som den senaste versionen har en bugg i programmet swag. För att fix
 
 ``go install github.com/swaggo/swag/cmd/swag@v1.8.12``
 
+För att köra servern måste man ha tillgång till em Mongodb databas. Installera och starta Mongodb.
+
+Editera filen config.yaml och fyll i port för webserver samt url för att ansluta 
+till Mongodb servern.
+
+I detta exempel så konfigureras server att lyssna på port 8080
+
+    port: 8080
+    mongodb:
+      url: "mongodb://root:MyPassword@localhost:27017"
+
 Bygga ock köra
 ---
 
 Kör `swag init` om du har gjort ändringar i swagger dokumentationen. Bygg applikationen med `go build` eller `go run backend` om du vill kör igång servern direkt.
 
 Tjänsten publiceras fn på `localhost:8080` det finns ett swagger-ui via url:en <http://localhost:8080/swagger/index.html>.
+
 
 
 
