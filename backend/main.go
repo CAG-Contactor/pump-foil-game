@@ -314,6 +314,27 @@ func getQueueHandler(g *gin.Context) {
 	g.JSON(http.StatusOK, queue)
 }
 
+// deleteContestantHandler godoc
+// @Summary Delete a contestant
+// @Schemes
+// @Description Delete a contestant from the database based on the email parameter
+// @Tags example
+// @Accept json
+// @Produce json
+// @Param email path string true "Email of the contestant to delete"
+// @Success 200
+// @Failure 500 {object} error
+// @Router /contestants/{email} [delete]
+func deleteContestantHandler(g *gin.Context) {
+	email := g.Param("email")
+	err := db.DeleteContestant(dbClient, email)
+	if err != nil {
+		g.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	g.Status(http.StatusOK)
+}
+
 // deleteQueueItemHandler godoc
 // @Summary Delete a contestant from the queue
 // @Schemes
@@ -454,6 +475,7 @@ func main() {
 	{
 		v1.GET("/contestants", getContestantsHandler)
 		v1.POST("/contestants", addContestantHandler)
+		v1.DELETE("/contestants/:email", deleteContestantHandler)
 		v1.POST("/game-start", gameStartHandler)
 		v1.POST("/game-finish", gameFinishHandler)
 		v1.POST("/game-abort", gameAbortHandler)

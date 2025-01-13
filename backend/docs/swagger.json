@@ -83,6 +83,39 @@
                 }
             }
         },
+        "/contestants/{email}": {
+            "delete": {
+                "description": "Delete a contestant from the database based on the email parameter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "example"
+                ],
+                "summary": "Delete a contestant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Email of the contestant to delete",
+                        "name": "email",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/game-abort": {
             "post": {
                 "description": "Abort the ongoing game and respond with a status message",

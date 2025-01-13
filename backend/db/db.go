@@ -31,7 +31,7 @@ type QueueItem struct {
 
 type LeaderboardEntry struct {
 	Id        primitive.ObjectID `bson:"_id"`
-	Email     string             `bson:"emil"`
+	Email     string             `bson:"email"`
 	SplitTime float64            `bson:"splitTime"`
 	EndTime   float64            `bson:"endTime"`
 }
@@ -146,6 +146,17 @@ func GetContestants(client *mongo.Client, getType GetContestantsType) ([]Contest
 	}
 
 	return contestants, nil
+}
+
+func DeleteContestant(client *mongo.Client, email string) error {
+	collection := client.Database(foildb).Collection(contestantsCollection)
+
+	filter := bson.D{{Key: "email", Value: email}}
+	_, err := collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func EnqueueContestant(client *mongo.Client, contestantId primitive.ObjectID) (*QueueItem, error) {
