@@ -17,7 +17,7 @@ Vi provade att få igång Websocket-baserad lösning som samplar MPU6050 och ski
 
 1. Logga in på raspberry 
 ```bash
-ssh pumpfoiler@<ip adress>
+ssh pumpfoil@<ip adress>
 ```
 2. Kopiera ner `mpu6050_websocket.py` till `/home/pumpfoil/pumpfoiler`.
 3. Starta applikationen (öppnasr websocket på port 8765)
