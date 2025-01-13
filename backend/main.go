@@ -409,8 +409,6 @@ func sendNotification(notification string) {
 
 // main starts a gin server and maps all the available endpoints
 func main() {
-	panic("Claes Gille! Kontakta Jfokus-gänget, så vi kan stämma av funktionaliteten! " +
-		"Vi ses på kontoret måndag 13/1" + "Halleluja!")
 	var err error
 	dbClient, err = db.ConnectDB()
 	if err != nil {
