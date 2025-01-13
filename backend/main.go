@@ -15,7 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type ContestantDTO struct {
+/*type ContestantDTO struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
 }
@@ -33,7 +33,7 @@ type LeaderboardEntryDTO struct {
 type QueueItemDTO struct {
 	Timestamp  int64         `json:"timestamp"`
 	Contestant ContestantDTO `json:"contestant"`
-}
+}*/
 
 var gameState *db.QueueItemDTO = nil
 var dbClient *mongo.Client
@@ -76,7 +76,7 @@ func getContestants(filter string) []db.ContestantDTO {
 // addContestant adds a new contestant to the list of all contestants and enqueues them.
 // If the contestant already exists, they are only enqueued.
 // Returns the QueueItemDTO for the enqueued contestant or an error.
-func addContestant(contestant ContestantDTO) (*QueueItemDTO, error) {
+func addContestant(contestant db.ContestantDTO) (*db.QueueItemDTO, error) {
 	dbContestant, err := db.AddContestant(dbClient, contestant.Email, contestant.Name)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func addContestant(contestant ContestantDTO) (*QueueItemDTO, error) {
 		return nil, err
 	}
 
-	return &QueueItemDTO{queueItem.Timestamp, contestant}, nil
+	return &db.QueueItemDTO{Timestamp: queueItem.Timestamp, Contestant: contestant}, nil
 }
 
 // startGame starts a game with an optional timestamp to start a game for any entry in the queue.
@@ -177,7 +177,7 @@ func abortGame() error {
 // @Accept json
 // @Produce json
 // @Param filter query string  false  "One of ALL, NOT_ENQUEUED or ENQUEUED. If omitted ALL is used."
-// @Success 200 {array} ContestantDTO
+// @Success 200 {array} db.ContestantDTO
 // @Failure 400 {object} error
 // @Router /contestants [get]
 func getContestantsHandler(g *gin.Context) {
@@ -200,13 +200,13 @@ func getContestantsHandler(g *gin.Context) {
 // @Tags example
 // @Accept json
 // @Produce json
-// @Param contestant body ContestantDTO true "Contestant to add"
-// @Success 200 {object} QueueItemDTO
+// @Param contestant body db.ContestantDTO true "Contestant to add"
+// @Success 200 {object} db.QueueItemDTO
 // @Failure 400 {object} error
 // @Failure 500 {object} error
 // @Router /contestants [post]
 func addContestantHandler(g *gin.Context) {
-	contestant := ContestantDTO{}
+	contestant := db.ContestantDTO{}
 	if err := g.BindJSON(&contestant); err != nil {
 		g.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -229,7 +229,7 @@ func addContestantHandler(g *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param timestamp query string false "imestamp of queueitem to start"
-// @Success 200 {object} QueueItemDTO
+// @Success 200 {object} db.QueueItemDTO
 // @Failure 500 {object} error
 // @Router /game-start [post]
 func gameStartHandler(g *gin.Context) {
@@ -266,8 +266,8 @@ func gameStartHandler(g *gin.Context) {
 // @Tags example
 // @Accept json
 // @Produce json
-// @Param result body GameResultDTO true "Result of the game"
-// @Success 200 {array} LeaderboardEntryDTO
+// @Param result body db.GameResultDTO true "Result of the game"
+// @Success 200 {array} db.LeaderboardEntryDTO
 // @Failure 400 {object} error
 // @Failure 500 {object} error
 // @Router /game-finish [post]
@@ -368,7 +368,7 @@ func deleteQueueItemHandler(g *gin.Context) {
 // @Tags example
 // @Accept json
 // @Produce json
-// @Success 200 {array} LeaderboardEntryDTO
+// @Success 200 {array} db.LeaderboardEntryDTO
 // @Router /leaderboard [get]
 func getLeaderboardHandler(g *gin.Context) {
 	allResults, err := db.GetLeaderboard(dbClient)

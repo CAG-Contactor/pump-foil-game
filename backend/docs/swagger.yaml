@@ -7,38 +7,24 @@ definitions:
       name:
         type: string
     type: object
-  db.QueueItemDTO:
-    properties:
-      contestant:
-        $ref: '#/definitions/db.ContestantDTO'
-      timestamp:
-        type: integer
-    type: object
-  main.ContestantDTO:
-    properties:
-      email:
-        type: string
-      name:
-        type: string
-    type: object
-  main.GameResultDTO:
+  db.GameResultDTO:
     properties:
       endTime:
         type: number
       splitTime:
         type: number
     type: object
-  main.LeaderboardEntryDTO:
+  db.LeaderboardEntryDTO:
     properties:
       contestant:
-        $ref: '#/definitions/main.ContestantDTO'
+        $ref: '#/definitions/db.ContestantDTO'
       result:
-        $ref: '#/definitions/main.GameResultDTO'
+        $ref: '#/definitions/db.GameResultDTO'
     type: object
-  main.QueueItemDTO:
+  db.QueueItemDTO:
     properties:
       contestant:
-        $ref: '#/definitions/main.ContestantDTO'
+        $ref: '#/definitions/db.ContestantDTO'
       timestamp:
         type: integer
     type: object
@@ -62,7 +48,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.ContestantDTO'
+              $ref: '#/definitions/db.ContestantDTO'
             type: array
         "400":
           description: Bad Request
@@ -81,14 +67,14 @@ paths:
         name: contestant
         required: true
         schema:
-          $ref: '#/definitions/main.ContestantDTO'
+          $ref: '#/definitions/db.ContestantDTO'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.QueueItemDTO'
+            $ref: '#/definitions/db.QueueItemDTO'
         "400":
           description: Bad Request
           schema: {}
@@ -127,7 +113,7 @@ paths:
         name: result
         required: true
         schema:
-          $ref: '#/definitions/main.GameResultDTO'
+          $ref: '#/definitions/db.GameResultDTO'
       produces:
       - application/json
       responses:
@@ -135,7 +121,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.LeaderboardEntryDTO'
+              $ref: '#/definitions/db.LeaderboardEntryDTO'
             type: array
         "400":
           description: Bad Request
@@ -164,7 +150,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.QueueItemDTO'
+            $ref: '#/definitions/db.QueueItemDTO'
         "500":
           description: Internal Server Error
           schema: {}
@@ -183,7 +169,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.LeaderboardEntryDTO'
+              $ref: '#/definitions/db.LeaderboardEntryDTO'
             type: array
       summary: Get leaderboard
       tags:

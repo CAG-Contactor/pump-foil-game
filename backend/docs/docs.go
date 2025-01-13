@@ -43,7 +43,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/main.ContestantDTO"
+                                "$ref": "#/definitions/db.ContestantDTO"
                             }
                         }
                     },
@@ -72,7 +72,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.ContestantDTO"
+                            "$ref": "#/definitions/db.ContestantDTO"
                         }
                     }
                 ],
@@ -80,7 +80,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.QueueItemDTO"
+                            "$ref": "#/definitions/db.QueueItemDTO"
                         }
                     },
                     "400": {
@@ -141,7 +141,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.GameResultDTO"
+                            "$ref": "#/definitions/db.GameResultDTO"
                         }
                     }
                 ],
@@ -151,7 +151,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/main.LeaderboardEntryDTO"
+                                "$ref": "#/definitions/db.LeaderboardEntryDTO"
                             }
                         }
                     },
@@ -191,7 +191,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.QueueItemDTO"
+                            "$ref": "#/definitions/db.QueueItemDTO"
                         }
                     },
                     "500": {
@@ -220,7 +220,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/main.LeaderboardEntryDTO"
+                                "$ref": "#/definitions/db.LeaderboardEntryDTO"
                             }
                         }
                     }
@@ -309,29 +309,7 @@ const docTemplate = `{
                 }
             }
         },
-        "db.QueueItemDTO": {
-            "type": "object",
-            "properties": {
-                "contestant": {
-                    "$ref": "#/definitions/db.ContestantDTO"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "main.ContestantDTO": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "main.GameResultDTO": {
+        "db.GameResultDTO": {
             "type": "object",
             "properties": {
                 "endTime": {
@@ -342,22 +320,22 @@ const docTemplate = `{
                 }
             }
         },
-        "main.LeaderboardEntryDTO": {
+        "db.LeaderboardEntryDTO": {
             "type": "object",
             "properties": {
                 "contestant": {
-                    "$ref": "#/definitions/main.ContestantDTO"
+                    "$ref": "#/definitions/db.ContestantDTO"
                 },
                 "result": {
-                    "$ref": "#/definitions/main.GameResultDTO"
+                    "$ref": "#/definitions/db.GameResultDTO"
                 }
             }
         },
-        "main.QueueItemDTO": {
+        "db.QueueItemDTO": {
             "type": "object",
             "properties": {
                 "contestant": {
-                    "$ref": "#/definitions/main.ContestantDTO"
+                    "$ref": "#/definitions/db.ContestantDTO"
                 },
                 "timestamp": {
                     "type": "integer"
