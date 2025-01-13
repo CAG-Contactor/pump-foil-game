@@ -1,16 +1,18 @@
 package main
 
 import (
+	"backend/db"
 	docs "backend/docs"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ContestantDTO struct {
@@ -33,13 +35,8 @@ type QueueItemDTO struct {
 	Contestant ContestantDTO `json:"contestant"`
 }
 
-var allContestants = []ContestantDTO{
-	{Email: "RJj8W@example.com", Name: "John Doe"},
-	{Email: "J2X9j@example.com", Name: "Jane Doe"},
-}
-var allResults []LeaderboardEntryDTO
-var gameState *QueueItemDTO = nil
-var queue = []QueueItemDTO{}
+var gameState *db.QueueItemDTO = nil
+var dbClient *mongo.Client
 
 // getContestants returns a list of ContestantDTOs filtered by the given string
 //
@@ -50,41 +47,27 @@ var queue = []QueueItemDTO{}
 // - "ALL": returns all contestants
 //
 // If the filter string is not recognized, the function returns nil.
-func getContestants(filter string) []ContestantDTO {
+func getContestants(filter string) []db.ContestantDTO {
 
 	switch filter {
 	case "NOT_ENQUEUED":
-		contenstantList := []ContestantDTO{}
-		for _, contestant := range allContestants {
-			found := false
-			for _, queueItem := range queue {
-				if queueItem.Contestant.Email == contestant.Email {
-					found = true
-					break
-				}
-			}
-			if !found {
-				contenstantList = append(contenstantList, contestant)
-			}
+		contestants, err := db.GetContestants(dbClient, db.GetContestantsNotEnqueued)
+		if err != nil {
+			return nil
 		}
-		return contenstantList
+		return contestants
 	case "ENQUEUED":
-		contenstantList := []ContestantDTO{}
-		for _, contestant := range allContestants {
-			found := false
-			for _, queueItem := range queue {
-				if queueItem.Contestant.Email == contestant.Email {
-					found = true
-					break
-				}
-			}
-			if found {
-				contenstantList = append(contenstantList, contestant)
-			}
+		contestants, err := db.GetContestants(dbClient, db.GetContestantsEnqueued)
+		if err != nil {
+			return nil
 		}
-		return contenstantList
+		return contestants
 	case "ALL":
-		return allContestants
+		contestants, err := db.GetContestants(dbClient, db.GetContestantsAll)
+		if err != nil {
+			return nil
+		}
+		return contestants
 	default:
 		return nil
 	}
@@ -93,24 +76,18 @@ func getContestants(filter string) []ContestantDTO {
 // addContestant adds a new contestant to the list of all contestants and enqueues them.
 // If the contestant already exists, they are only enqueued.
 // Returns the QueueItemDTO for the enqueued contestant or an error.
-func addContestant(contestant ContestantDTO) (QueueItemDTO, error) {
-	for _, c := range allContestants {
-		if c.Email == contestant.Email {
-			newQueueItem, _ := enqueueContestant(contestant)
-			return newQueueItem, nil
-		}
+func addContestant(contestant ContestantDTO) (*QueueItemDTO, error) {
+	dbContestant, err := db.AddContestant(dbClient, contestant.Email, contestant.Name)
+	if err != nil {
+		return nil, err
 	}
-	allContestants = append(allContestants, contestant)
-	newQueueItem, _ := enqueueContestant(contestant)
-	return newQueueItem, nil
-}
 
-// enqueueContestant adds a contestant to the queue with the current timestamp.
-// Returns the QueueItemDTO for the enqueued contestant and an error if any occurs.
-func enqueueContestant(contestant ContestantDTO) (QueueItemDTO, error) {
-	newQueueItem := QueueItemDTO{time.Now().UnixNano(), contestant}
-	queue = append(queue, newQueueItem)
-	return newQueueItem, nil
+	queueItem, err := db.EnqueueContestant(dbClient, dbContestant.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &QueueItemDTO{queueItem.Timestamp, contestant}, nil
 }
 
 // startGame starts a game with an optional timestamp to start a game for any entry in the queue.
@@ -118,23 +95,33 @@ func enqueueContestant(contestant ContestantDTO) (QueueItemDTO, error) {
 // If the given timestamp is not found in the queue, the function returns an error.
 // If the game is already in progress, the function returns an error.
 // If the queue is empty, the function returns an error.
-func startGame(timestamp *int64) (*QueueItemDTO, error) {
+func startGame(timestamp *int64) (*db.QueueItemDTO, error) {
+	queue, err := db.GetQueue(dbClient)
+	if err != nil {
+		return nil, err
+	}
 	// Check if the queue is not empty
 	if len(queue) > 0 {
 		// If the game is not in progress, start it with the first item in the queue
 		if gameState == nil {
 			if timestamp != nil {
-				for i, entry := range queue {
+				for _, entry := range queue {
 					if entry.Timestamp == *timestamp {
 						gameState = &entry
-						queue = append(queue[:i], queue[i+1:]...)
+						err = db.DeleteQueueItem(dbClient, entry.Timestamp)
+						if err != nil {
+							return nil, err
+						}
 						return &entry, nil
 					}
 				}
 				return nil, errors.New("timestamp not found in queue")
 			} else {
 				queueItem := queue[0]
-				queue = queue[1:]
+				err = db.DeleteQueueItem(dbClient, queueItem.Timestamp)
+				if err != nil {
+					return nil, err
+				}
 				gameState = &queueItem
 				return &queueItem, nil
 			}
@@ -150,24 +137,20 @@ func startGame(timestamp *int64) (*QueueItemDTO, error) {
 // finishGame finishes the current game with the given result and updates the leaderboard.
 // It returns the updated leaderboard or an error if the game is not in progress.
 // If the contestant already has a result in the leaderboard, the new result is only added if it is better than the previous result.
-func finishGame(result GameResultDTO) ([]LeaderboardEntryDTO, error) {
+func finishGame(result db.GameResultDTO) ([]db.LeaderboardEntryDTO, error) {
 	// Check if the game is in progress
 	if gameState != nil {
-		leaderboardEntry := LeaderboardEntryDTO{gameState.Contestant, result}
+		//leaderboardEntry := db.LeaderboardEntryDTO{Contestant: gameState.Contestant, GameResult: result}
 
-		// Check if the contestant already has a result
-		for i, entry := range allResults {
-			if entry.Contestant.Email == leaderboardEntry.Contestant.Email {
-				// Update the result if the new result is better
-				if leaderboardEntry.GameResult.EndTime < entry.GameResult.EndTime {
-					allResults[i] = leaderboardEntry
-					gameState = nil
-					return allResults, nil
-				}
-			}
+		_, err := db.CreateOrUpdateLeaderboardEntry(dbClient, *gameState, result)
+		if err != nil {
+			return nil, err
 		}
-		// Otherwise, add the new result
-		allResults = append(allResults, leaderboardEntry)
+
+		allResults, err := db.GetLeaderboard(dbClient)
+		if err != nil {
+			return nil, err
+		}
 
 		gameState = nil
 		return allResults, nil
@@ -182,20 +165,6 @@ func abortGame() error {
 	// Reset the game state
 	gameState = nil
 	return nil
-}
-
-// deleteQueueItem deletes the queue item with the given timestamp.
-// It returns nil if the item was found and deleted, or an error if the item was not found.
-func deleteQueueItem(timestamp int64) error {
-
-	for i, entry := range queue {
-		if entry.Timestamp == timestamp {
-			queue = append(queue[:i], queue[i+1:]...)
-			return nil
-		}
-	}
-
-	return errors.New("queue item not found")
 }
 
 // @BasePath /api/v1
@@ -285,6 +254,7 @@ func gameStartHandler(g *gin.Context) {
 			return
 		}
 
+		sendNotification("started")
 		g.JSON(http.StatusOK, queueItem)
 	}
 }
@@ -302,7 +272,7 @@ func gameStartHandler(g *gin.Context) {
 // @Failure 500 {object} error
 // @Router /game-finish [post]
 func gameFinishHandler(g *gin.Context) {
-	gameResult := GameResultDTO{}
+	gameResult := db.GameResultDTO{}
 	if err := g.BindJSON(&gameResult); err != nil {
 		g.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -313,6 +283,8 @@ func gameFinishHandler(g *gin.Context) {
 		g.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	sendNotification("stopped")
 
 	g.JSON(http.StatusOK, leaderboard)
 }
@@ -334,6 +306,8 @@ func gameAbortHandler(g *gin.Context) {
 		return
 	}
 
+	sendNotification("stopped")
+
 	g.JSON(http.StatusOK, "aborted")
 }
 
@@ -344,9 +318,17 @@ func gameAbortHandler(g *gin.Context) {
 // @Tags example
 // @Accept json
 // @Produce json
-// @Success 200 {array} QueueItemDTO
+// @Success 200 {array} db.QueueItemDTO
 // @Router /queue [get]
 func getQueueHandler(g *gin.Context) {
+	queue, err := db.GetQueue(dbClient)
+	if err != nil {
+		g.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	if queue == nil {
+		queue = []db.QueueItemDTO{}
+	}
 	g.JSON(http.StatusOK, queue)
 }
 
@@ -370,7 +352,7 @@ func deleteQueueItemHandler(g *gin.Context) {
 		return
 	}
 
-	err = deleteQueueItem(timestamp)
+	err = db.DeleteQueueItem(dbClient, timestamp)
 	if err != nil {
 		g.AbortWithError(http.StatusNotFound, err)
 		return
@@ -389,13 +371,53 @@ func deleteQueueItemHandler(g *gin.Context) {
 // @Success 200 {array} LeaderboardEntryDTO
 // @Router /leaderboard [get]
 func getLeaderboardHandler(g *gin.Context) {
+	allResults, err := db.GetLeaderboard(dbClient)
+	if err != nil {
+		g.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 	g.JSON(http.StatusOK, allResults)
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+var websockets []*websocket.Conn
+
+// websocketHandler godoc
+// @Summary Handle websocket connections
+// @Description Handle websocket connections. Websocket clients can connectusing the url ws://localhost:8080/api/v1/ws
+// @Router /ws [get]
+func websocketHandler(g *gin.Context) {
+	conn, err := upgrader.Upgrade(g.Writer, g.Request, nil)
+	if err != nil {
+		return
+	}
+	//defer conn.Close()
+	websockets = append(websockets, conn)
+}
+
+func sendNotification(notification string) {
+	for _, ws := range websockets {
+		ws.WriteMessage(websocket.TextMessage, []byte(notification))
+	}
 }
 
 // main starts a gin server and maps all the available endpoints
 func main() {
 	panic("Claes Gille! Kontakta Jfokus-gänget, så vi kan stämma av funktionaliteten! " +
 		"Vi ses på kontoret måndag 13/1" + "Halleluja!")
+	var err error
+	dbClient, err = db.ConnectDB()
+	if err != nil {
+		panic(err)
+	}
+	defer db.CloseDB(dbClient)
+
 	r := gin.Default()
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	v1 := r.Group("/api/v1")
@@ -408,6 +430,7 @@ func main() {
 		v1.GET("/queue", getQueueHandler)
 		v1.DELETE("/queue/:timestamp", deleteQueueItemHandler)
 		v1.GET("/leaderboard", getLeaderboardHandler)
+		v1.GET("/ws", websocketHandler)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.Run(":8080")

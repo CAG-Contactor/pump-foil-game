@@ -246,7 +246,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/main.QueueItemDTO"
+                                "$ref": "#/definitions/db.QueueItemDTO"
                             }
                         }
                     }
@@ -288,9 +288,38 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/ws": {
+            "get": {
+                "description": "Handle websocket connections. Websocket clients can connectusing the url ws://localhost:8080/api/v1/ws",
+                "summary": "Handle websocket connections",
+                "responses": {}
+            }
         }
     },
     "definitions": {
+        "db.ContestantDTO": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "db.QueueItemDTO": {
+            "type": "object",
+            "properties": {
+                "contestant": {
+                    "$ref": "#/definitions/db.ContestantDTO"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
         "main.ContestantDTO": {
             "type": "object",
             "properties": {
