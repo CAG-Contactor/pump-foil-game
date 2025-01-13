@@ -268,8 +268,7 @@ func gameFinishHandler(g *gin.Context) {
 		return
 	}
 
-	sendNotification("stopped")
-
+	notifyEndGame(gameResult)
 	g.JSON(http.StatusOK, leaderboard)
 }
 
@@ -290,8 +289,7 @@ func gameAbortHandler(g *gin.Context) {
 		return
 	}
 
-	sendNotification("stopped")
-
+	notifyAbortGame()
 	g.JSON(http.StatusOK, "aborted")
 }
 
@@ -391,17 +389,37 @@ func sendNotification(notification string) {
 	}
 }
 
-type InitGameNotification struct {
-	Type   string
-	Userid string `json:"userid"`
-	Name   string `json:"name"`
+type GameNotification struct {
+	Type       string
+	Userid     string  `json:"userid,omitempty"`
+	Name       string  `json:"name,omitempty"`
+	SplitTime  float64 `json:"splitTime,omitempty"`
+	FinishTime float64 `json:"finishTime,omitempty"`
 }
 
 func notifyInitGame(queueItem db.QueueItemDTO) {
-	notification := InitGameNotification{
+	notification := GameNotification{
 		Type:   "InitGame",
 		Userid: queueItem.Contestant.Email,
 		Name:   queueItem.Contestant.Name,
+	}
+	notificationJson, _ := json.Marshal(notification)
+	sendNotification(string(notificationJson))
+}
+
+func notifyAbortGame() {
+	notification := GameNotification{
+		Type: "AbortGame",
+	}
+	notificationJson, _ := json.Marshal(notification)
+	sendNotification(string(notificationJson))
+}
+
+func notifyEndGame(result db.GameResultDTO) {
+	notification := GameNotification{
+		Type:       "EndGame",
+		SplitTime:  result.SplitTime,
+		FinishTime: result.EndTime,
 	}
 	notificationJson, _ := json.Marshal(notification)
 	sendNotification(string(notificationJson))
