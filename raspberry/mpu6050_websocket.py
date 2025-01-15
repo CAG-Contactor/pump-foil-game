@@ -1,18 +1,42 @@
-# import mpu6050
+import mpu6050
 import asyncio
-import datetime
-from xmlrpc.client import DateTime
-
+import math
 import websockets
+import json
 
 # Create a new Mpu6050 object
-#mpu6050 = mpu6050.mpu6050(0x68)
+mpu6050 = mpu6050.mpu6050(0x68)
+
+# Define a function to read the sensor data
+def read_sensor_data():
+  # Read the accelerometer values
+  accelerometer_data = mpu6050.get_accel_data()
+
+  # Read the gyroscope values
+  gyroscope_data = mpu6050.get_gyro_data()
+
+  # Read temp
+  temperature = mpu6050.get_temp()
+
+  return accelerometer_data, gyroscope_data, temperature
 
 async def pump(websocket):
   print("En klient har anslutit.")
   try:
     while True:
-      await websocket.send("event:"+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+      # Read the sensor data
+      accelerometer_data, gyroscope_data, temperature = read_sensor_data()
+
+      # Print the sensor data
+      print("Accelerometer data:", accelerometer_data)
+      print("Gyroscope data:", gyroscope_data)
+      print("Temp:", temperature)
+
+      pitch = math.atan(accelerometer_data["y"]/accelerometer_data["z"])*180/math.pi;
+      print("Pitch:", pitch)
+
+      message = json.dumps(accelerometer_data)
+      await websocket.send(message)
       await asyncio.sleep(10.0)
   except websockets.ConnectionClosed:
     print("Klienten kopplade från.")
