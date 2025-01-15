@@ -150,9 +150,22 @@ func GetContestants(client *mongo.Client, getType GetContestantsType) ([]Contest
 
 func DeleteContestant(client *mongo.Client, email string) error {
 	collection := client.Database(foildb).Collection(contestantsCollection)
+	qcollection := client.Database(foildb).Collection(queueCollection)
+
+	var contestant Contestant
+	err := collection.FindOne(context.TODO(), bson.D{{Key: "email", Value: email}}).Decode(&contestant)
+	if err != nil {
+		return err
+	}
+
+	qfilter := bson.D{{Key: "contestantId", Value: contestant.Id}}
+	_, err = qcollection.DeleteMany(context.TODO(), qfilter)
+	if err != nil {
+		return err
+	}
 
 	filter := bson.D{{Key: "email", Value: email}}
-	_, err := collection.DeleteOne(context.TODO(), filter)
+	_, err = collection.DeleteOne(context.TODO(), filter)
 	if err != nil {
 		return err
 	}
