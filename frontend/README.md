@@ -62,17 +62,8 @@ Protokoll
 * FetchResultList
 * ResultList
 
-Events
-------
-### InitGame
-```json
-{
-  "type": "InitGame",
-  "userid": "kalle@company.com",
-  "name": "Kalle"
-}
-```
-
+Web socket events
+-----------------
 ### ControllerUpdate
 Frekvensen anges i Hz och lutningen är ett grader värde mellan -90 och 90.
 ```json
@@ -83,13 +74,12 @@ Frekvensen anges i Hz och lutningen är ett grader värde mellan -90 och 90.
 }
 ```
 
-### EndGame
-SplitTime och FinishTime anges i millisekunder.
+### InitGame
 ```json
 {
-  "type": "EndGame",
-  "splitTime": 10,
-  "finishTime": 20
+  "type": "InitGame",
+  "userid": "kalle@company.com",
+  "name": "Kalle"
 }
 ```
 
@@ -97,31 +87,5 @@ SplitTime och FinishTime anges i millisekunder.
 ```json
 {
   "type": "AbortGame"
-}
-```
-
-### FetchResultList
-```json
-{
-  "type": "FetchResultList"
-}
-```
-
-### ResultList
-```json
-{
-  "type": "ResultList",
-  "results": [
-    {
-      "username": "player1",
-      "splitTime": 10,
-      "finishTime": 20
-    },
-    {
-      "username": "player2",
-      "splitTime": 15,
-      "finishTime": 25
-    }
-  ]
 }
 ```

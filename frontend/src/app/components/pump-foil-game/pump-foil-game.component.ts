@@ -1,3 +1,4 @@
+import {HttpClient, HttpClientModule} from "@angular/common/http";
 import {Component, OnInit} from '@angular/core';
 import {PumpFoilGame} from "./pump-foil-game";
 
@@ -32,9 +33,10 @@ import {PumpFoilGame} from "./pump-foil-game";
   `
 })
 export class PumpFoilGameComponent implements OnInit {
-  private game = new PumpFoilGame()
+  private readonly game;
 
-  constructor() {
+  constructor(private readonly http: HttpClient) {
+    this.game = new PumpFoilGame(http);
   }
 
   ngOnInit(): void {

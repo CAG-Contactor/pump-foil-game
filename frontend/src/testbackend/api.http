@@ -7,3 +7,35 @@ content-type: application/json
 
 
 
+### Go-Backend
+GET http://localhost:8080/api/v1/leaderboard
+
+### Check WebSocket connection
+WEBSOCKET ws://172.27.17.21:8765/kaka
+content-type: application/json
+
+### MPU
+GET http://172.27.17.21:8080/mpu-data
+
+
+
+### Game admin
+### Abort
+POST http://localhost:8080/api/v1/game-abort
+
+### Start
+POST http://localhost:8080/api/v1/game-start
+
+### Finish
+POST http://localhost:8080/api/v1/game-finish
+
+### Finish
+POST http://localhost:8080/api/v1/game-finish
+
+### Enqueu
+POST http://localhost:8080/api/v1/contestants
+
+{
+  "email": "kaka@banan",
+  "name": "kakabanan"
+}

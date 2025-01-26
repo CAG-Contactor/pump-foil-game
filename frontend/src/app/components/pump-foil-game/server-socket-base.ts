@@ -6,7 +6,7 @@ export abstract class ServerSocketBase {
   }
 
   private connectWebSocket(): void {
-    console.log('Connecting to WebSocket server:',this.webSocketUrl);
+    console.log('Connecting to WebSocket server:', this.webSocketUrl);
     this.socket = new WebSocket(this.webSocketUrl);
 
     this.socket.onopen = (event) => {
@@ -20,7 +20,14 @@ export abstract class ServerSocketBase {
     this.socket.onmessage = (event) => {
       const socket = this.socket;
       if (socket && event?.data) {
-        this.handleMessage(JSON.parse(event.data));
+        const gameMessage = this.messageJsonToObject(event.data);
+        switch (gameMessage.type) {
+          case "WSConnectionStatus":
+            console.log("WSConnectionStatus", gameMessage);
+            break;
+          default:
+            this.handleMessage(gameMessage);
+        }
       }
     };
 
@@ -48,6 +55,10 @@ export abstract class ServerSocketBase {
   }
 
   protected abstract handleMessage(message: GameMessage): void;
+
+  protected messageJsonToObject(data: string): GameMessage {
+    return JSON.parse(data);
+  }
 }
 
 export interface PingMessage {
@@ -70,7 +81,7 @@ export interface ControllerUpdateMessage {
 export interface EndGameMessage {
   type: "EndGame";
   splitTime: number; // millis
-  finishTime: number; // millis
+  endTime: number; // millis
 }
 
 export interface AbortGameMessage {
@@ -86,6 +97,18 @@ export interface ResultlistMessage {
   resultlist: Array<{ userName: string, splitTime: number, finishTime: number }>;
 }
 
+export interface PumpControlUpdateMessage {
+  type: "PumpControlUpdate";
+  pump: boolean;
+  turn: "left" | "right" | null;
+  timestamp: number;
+}
+
+export interface WSConnectionStatus {
+  type: "WSConnectionStatus"
+  connected: "OK"
+}
+
 export type GameAdminMessage =
   InitGameMessage
   | EndGameMessage
@@ -96,4 +119,5 @@ export type GameAdminMessage =
 
 export type GameMessage =
   GameAdminMessage
-  | ControllerUpdateMessage;
+  | PumpControlUpdateMessage
+  | WSConnectionStatus

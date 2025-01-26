@@ -3,11 +3,14 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start:frontend": "ng serve --port 23042",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "start:testbackend": "ts-node src/testbackend/ws-server.ts"
+    "start:testbackend:raspberry": "ts-node src/testbackend/ws-server.raspberry.ts",
+    "start:testbackend:admin-ws": "ts-node src/testbackend/ws-server.admin.ts",
+    "start:testbackend:admins-be": "ts-node src/testbackend/admin-backend.ts",
+    "start:testbackend:admin-rest": "ts-node src/testbackend/rest-server.ts"
   },
   "private": true,
   "dependencies": {
@@ -33,6 +36,7 @@
     "@types/express": "^5.0.0",
     "@types/jasmine": "~5.1.0",
     "autoprefixer": "^10.4.20",
+    "cors": "^2.8.5",
     "express": "^4.21.1",
     "flowbite": "^2.5.2",
     "jasmine-core": "~5.2.0",
