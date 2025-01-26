@@ -411,7 +411,7 @@ func sendNotification(notification string) {
 }
 
 type GameNotification struct {
-	Type       string
+	Type       string  `json:"type"`
 	Userid     string  `json:"userid,omitempty"`
 	Name       string  `json:"name,omitempty"`
 	SplitTime  float64 `json:"splitTime,omitempty"`
