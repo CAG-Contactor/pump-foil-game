@@ -25,14 +25,14 @@ export class Port extends Actor {
       x,
       y,
       rotation: rotationDegrees * (Math.PI / 180),
-      width: 40,
+      width: 50,
       height: 2,
       collisionType: CollisionType.Passive,
       color: Color.Gray,
     });
     this.addChild(new Actor({
       name: "right stick",
-      x: 25,
+      x: 30,
       y: 0,
       radius: 5,
       collisionType: CollisionType.Fixed,
@@ -40,7 +40,7 @@ export class Port extends Actor {
     }));
     this.addChild(new Actor({
       name: "left stick",
-      x: -25,
+      x: -30,
       y: 0,
       radius: 5,
       collisionType: CollisionType.Fixed,
