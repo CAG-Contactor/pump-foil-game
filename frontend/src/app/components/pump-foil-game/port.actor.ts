@@ -18,6 +18,30 @@ export const PortEvents = {
 export const portEvents = new EventEmitter<ActorEvents & PortEventsType>();
 
 
+function labelX(rotationDegrees: number) {
+  if (rotationDegrees >= 0 && rotationDegrees <= 90) {
+    return -45;
+  } else if (rotationDegrees <= 180) {
+    return 50;
+  } else if (rotationDegrees <= 270) {
+    return 45;
+  } else {
+    return -50;
+  }
+}
+
+function labelY(rotationDegrees: number) {
+  if (rotationDegrees >= 0 && rotationDegrees <= 90) {
+    return 0;
+  } else if (rotationDegrees <= 180) {
+    return 0;
+  } else if (rotationDegrees <= 270) {
+    return 0;
+  } else {
+    return 0;
+  }
+}
+
 export class Port extends Actor {
   constructor(name: string, x: number, y: number, rotationDegrees: number) {
     super({
@@ -47,8 +71,9 @@ export class Port extends Actor {
       color: Color.Red,
     }));
     const textActor = new Actor({
-      x: 30,
-      y: -10,
+      x: labelX(rotationDegrees),
+      y: labelY(rotationDegrees),
+      rotation: -rotationDegrees * (Math.PI / 180),
       collisionType: CollisionType.PreventCollision,
     })
     const nameText = new Text({text: name, color: Color.White});
