@@ -7,6 +7,7 @@
 !include <logos/raspberry-pi>
 !include <logos/python>
 !include <logos/mongodb>
+!include <logos/macos>
 
 
 package "Pump foil" {
@@ -15,24 +16,24 @@ package "Pump foil" {
   Pi - [MPU6050]: I2C
 }
 
-package "Game frontend" {
-    rectangle "<:surfer:>\n<$javascript>\nGame engine" as GameFront
+rectangle "Mac mini" as Mac {
+    package "Game frontend" {
+        rectangle "<:surfer:>\n<$javascript>\nGame engine" as GameFront
+    }
+
+
+    package "Backend" {
+        rectangle "<$go>\nGame status &\nPlayer registration" as Back
+    }
+
+    package "Database" {
+        rectangle "<$mongodb>" as DB
+    }
+
+    package "Registration frontend" {
+        rectangle "<$react>\nAdmin frontend" as RegFront
+    }
 }
-
-
-
-package "Backend" {
-    rectangle "<$go>\nGame status &\nPlayer registration" as Back
-}
-
-package "Database" {
-    rectangle "<$mongodb>" as DB
-}
-
-package "Registration frontend" {
-    rectangle "<$react>\nAdmin frontend" as RegFront
-}
-
 package "QR Scanner" {
    rectangle "<:camera:>\nCamera" as Camera
   rectangle "<$raspberry-pi><$java>\nRaspberry PI" as CameraPi
@@ -45,6 +46,8 @@ Back -- DB: Players\ntimes
 RegFront -left- Back: REST
 CameraPi -- Back: REST
 
+:User:-left- RegFront
+:User:-up- Camera
 
 
 
