@@ -1,0 +1,51 @@
+@startuml
+'https://plantuml.com/component-diagram
+!include <logos/go>
+!include <logos/java>
+!include <logos/react>
+!include <logos/javascript>
+!include <logos/raspberry-pi>
+!include <logos/python>
+!include <logos/mongodb>
+
+
+package "Pump foil" {
+ [MPU6050]
+  rectangle "<$raspberry-pi><$python>\nRaspberry PI" as Pi
+  Pi - [MPU6050]: I2C
+}
+
+package "Game frontend" {
+    rectangle "<:surfer:>\n<$javascript>\nGame engine" as GameFront
+}
+
+
+
+package "Backend" {
+    rectangle "<$go>\nGame status &\nPlayer registration" as Back
+}
+
+package "Database" {
+    rectangle "<$mongodb>" as DB
+}
+
+package "Registration frontend" {
+    rectangle "<$react>\nAdmin frontend" as RegFront
+}
+
+package "QR Scanner" {
+   rectangle "<:camera:>\nCamera" as Camera
+  rectangle "<$raspberry-pi><$java>\nRaspberry PI" as CameraPi
+    CameraPi - Camera: USB
+}
+
+Pi-up->GameFront : WebSocket
+GameFront -- Back: REST
+Back -- DB: Players\ntimes
+RegFront -left- Back: REST
+CameraPi -- Back: REST
+
+
+
+
+@enduml
