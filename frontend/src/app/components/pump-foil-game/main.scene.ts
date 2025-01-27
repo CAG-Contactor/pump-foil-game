@@ -30,17 +30,21 @@ export const Ports = {
   Port5: "port5",
   Port6: "port6",
   Port7: "port7",
+  Port8: "port8",
+  Port9: "port9",
 }
 
 export function addPorts(game: Engine) {
   [
-    {name: Ports.Port1, x: 100, y: 500, rotation: 0},
-    {name: Ports.Port2, x: 50, y: 300, rotation: 0},
-    {name: Ports.Port3, x: 200, y: 100, rotation: 90},
-    {name: Ports.Port4, x: 400, y: 300 , rotation: 180},
-    {name: Ports.Port5, x: 550, y: 500 , rotation: 90},
-    {name: Ports.Port6, x: 700, y: 400 , rotation: 0},
-    {name: Ports.Port7, x: 550, y: 100 , rotation: 0},
+    {name: Ports.Port1, x: 100, y: 100, rotation: 90},
+    {name: Ports.Port2, x: 250, y: 75, rotation: 90},
+    {name: Ports.Port3, x: 400, y: 125, rotation: 90},
+    {name: Ports.Port4, x: 550, y: 75 , rotation: 90},
+    {name: Ports.Port5, x: 750, y: 300 , rotation: 180},
+    {name: Ports.Port6, x: 550, y: 500 , rotation: 270},
+    {name: Ports.Port7, x: 400, y: 500 , rotation: 270},
+    {name: Ports.Port8, x: 250, y: 500 , rotation: 270},
+    {name: Ports.Port9, x: 100, y: 500 , rotation: 270},
   ].forEach(({name, x, y, rotation}) => {
     game.add(new Port(name, x, y, rotation));
   })

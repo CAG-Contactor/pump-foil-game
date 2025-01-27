@@ -19,8 +19,8 @@ export interface GameController {
 }
 
 export class PumpFoilGame implements GameAdminstration, GameController {
-  private static readonly SURFER_X_INIT = 100;
-  private static readonly SURFER_Y_INIT = 550;
+  private static readonly SURFER_X_INIT = 50;
+  private static readonly SURFER_Y_INIT = 100;
 
   private gameRunning = false;
   private startTimeStamp?: number;
@@ -42,7 +42,7 @@ export class PumpFoilGame implements GameAdminstration, GameController {
     this.game = new Engine({
       canvasElementId: "pump-foil-game",
     });
-    this.surfer = new Surfer(PumpFoilGame.SURFER_X_INIT,PumpFoilGame.SURFER_Y_INIT, 0);
+    this.surfer = new Surfer(PumpFoilGame.SURFER_X_INIT,PumpFoilGame.SURFER_Y_INIT, 90);
     this.game.add(this.surfer)
     addWalls(this.game);
     addPorts(this.game);
@@ -66,7 +66,7 @@ export class PumpFoilGame implements GameAdminstration, GameController {
   }
 
   private stopAndResetGame() {
-    this.surfer.reset(PumpFoilGame.SURFER_X_INIT, PumpFoilGame.SURFER_Y_INIT)
+    this.surfer.reset(PumpFoilGame.SURFER_X_INIT, PumpFoilGame.SURFER_Y_INIT, 90)
     this.gameRunning = false;
     this.startTimeStamp = undefined;
     this.endTimeStamp = undefined;

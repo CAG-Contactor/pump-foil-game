@@ -99,7 +99,7 @@ export interface ResultlistMessage {
 
 export interface PumpControlUpdateMessage {
   type: "PumpControlUpdate";
-  pump: boolean;
+  pumping: boolean;
   turn: "left" | "right" | null;
   timestamp: number;
 }

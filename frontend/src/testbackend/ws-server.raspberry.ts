@@ -80,12 +80,12 @@ class KeyPressHandler {
           process.exit();
           break;
         case 'space':
-          client!.send({"pump": true, "turn": this.turn, "timestamp": new Date().getTime()});
+          client!.send({"pumping": true, "turn": this.turn, "timestamp": new Date().getTime()});
           break;
         case "right":
         case "left":
           this.turn = null;
-          client!.send({"pump": false, "turn": key.name, "timestamp": new Date().getTime()});
+          client!.send({"pumping": false, "turn": key.name, "timestamp": new Date().getTime()});
           break;
         default:
           break;

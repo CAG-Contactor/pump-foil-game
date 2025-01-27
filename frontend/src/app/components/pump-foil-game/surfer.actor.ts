@@ -20,7 +20,7 @@ export class Surfer extends Actor {
   private turn: "left"|"right"|null = null;
   private colliding: boolean = false;
 
-  constructor(x: number = 400, y: number = 300, initialDirection: number = 180) {
+  constructor(x: number = 50, y: number = 150, initialDirection: number = 90) {
     super({
       name: "Surfer",
       x,
@@ -49,12 +49,12 @@ export class Surfer extends Actor {
       }
 
       switch (this.turn) {
-        case "left":
-          this.direction = (this.direction - 5) % 360;
+        case "right":
+          this.direction = (this.direction - 3) % 360;
           this.turn = null;
           break;
-        case "right":
-          this.direction = (this.direction + 5) % 360;
+        case "left":
+          this.direction = (this.direction + 3) % 360;
           this.turn = null;
           break;
         default:
@@ -71,6 +71,8 @@ export class Surfer extends Actor {
       }
 
       updateFromController();
+    } else {
+      this.speed = 0.0;
     }
 
     const currentDirection = vec(
@@ -104,7 +106,7 @@ export class Surfer extends Actor {
   }
 
   handleControlChange(pumpControlMessage: PumpControlUpdateMessage) {
-    if (pumpControlMessage.pump) {
+    if (pumpControlMessage.pumping) {
       this.pumpCounter = this.pumpCounter + 1;
     }
     if (pumpControlMessage.turn != null) {
@@ -112,12 +114,13 @@ export class Surfer extends Actor {
     }
   }
 
-  reset(xPos: number, yPos: number) {
+  reset(xPos: number, yPos: number, direction: number) {
     console.log("reset");
     this.running = false;
     this.pos.setTo(xPos, yPos);
     this.speed = 0.0;
-    this.direction = 0.0;
+    this.direction = direction;
+    this.pumpCounter = 0;
   }
 }
 function increase(currentSpeed: number, pumpCounter: number) {
