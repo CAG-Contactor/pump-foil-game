@@ -51,7 +51,7 @@ class KeyPressHandler {
       switch (key?.name) {
         case 'right':
           this.turn = "right";
-          client!.send({"pump": false, "turn": "right", "timestamp": new Date().getTime()});
+          client!.send({"pumping": false, "turn": "right", "timestamp": new Date().getTime()});
           break;
         case 'left':
           this.turn = "left";

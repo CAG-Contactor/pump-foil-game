@@ -1,8 +1,8 @@
 import {GameController} from "./pump-foil-game";
 import {GameMessage, PumpControlUpdateMessage, ServerSocketBase} from "./server-socket-base";
 
-//const RASPBERRY_SERVER= "localhost:3001";
-const RASPBERRY_SERVER= "172.27.17.33:8765";
+const RASPBERRY_SERVER= "localhost:3001";
+//const RASPBERRY_SERVER= "172.27.17.33:8765";
 const wsUrl = localStorage.getItem("game-control-server-socket-url") ?? `ws://${RASPBERRY_SERVER}/game-control`
 
 export class GameControlServerSocket extends ServerSocketBase {
@@ -13,7 +13,7 @@ export class GameControlServerSocket extends ServerSocketBase {
 
   protected override messageJsonToObject(data: string): GameMessage {
     const jsObject = JSON.parse(data);
-    if (jsObject.pump != null || jsObject.turn != null) {
+    if (jsObject.pumping != null || jsObject.turn != null) {
       return {type: "PumpControlUpdate", ...jsObject} as PumpControlUpdateMessage;
     } else {
       return super.messageJsonToObject(data);

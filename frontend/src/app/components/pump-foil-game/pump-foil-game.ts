@@ -2,10 +2,11 @@ import {HttpClient} from "@angular/common/http";
 import {Engine} from "excalibur";
 import {GameAdminServerSocket, LeaderBoardEntry} from "./game-admin-server-socket";
 import {GameControlServerSocket} from "./game-control-server-socket";
-import {addPorts, addWalls, Ports} from "./main.scene";
-import {portEvents, PortEvents, PortPassedEvent} from "./port.actor";
+import {addPorts, addWalls, createPorts, Ports} from "./main.scene";
+import {Port, portEvents, PortEvents, PortPassedEvent} from "./port.actor";
 import {AbortGameMessage, EndGameMessage, InitGameMessage, PumpControlUpdateMessage} from "./server-socket-base";
 import {Surfer} from "./surfer.actor";
+import {TimerActor} from "./timer.actor";
 
 
 export interface GameAdminstration {
@@ -30,7 +31,9 @@ export class PumpFoilGame implements GameAdminstration, GameController {
   private readonly gameAdminServerSocket: GameAdminServerSocket ;
   private game!: Engine<any>;
   private surfer!: Surfer;
+  private timer!: TimerActor;
   private leaderBoard: Array<LeaderBoardEntry> = [];
+  private ports: Array<Port> = [];
 
   constructor(private readonly http: HttpClient) {
     this.gameControlServerSocket = new GameControlServerSocket(this);
@@ -44,19 +47,29 @@ export class PumpFoilGame implements GameAdminstration, GameController {
     });
     this.surfer = new Surfer(PumpFoilGame.SURFER_X_INIT,PumpFoilGame.SURFER_Y_INIT, 90);
     this.game.add(this.surfer)
+    this.timer = new TimerActor(400,25, this.game);
+    this.game.add(this.timer)
     addWalls(this.game);
+    this.ports = createPorts();
+    this.ports.forEach(port => this.game.add(port));
     addPorts(this.game);
 
     portEvents.on(PortEvents.PortPassed, async (event: PortPassedEvent) => {
       console.log("Port Passed", event.port.name, this.game.clock.now())
-      if (event.port.name === Ports.Port1) {
-        this.startTimeStamp = this.game.clock.now();
+      if (!this.gameRunning) {
+        return;
+      }
+      if (event.port.name === Ports.StartPort) {
+        this.timer.start();
+        this.startTimeStamp = this.timer.startTimeMs;
       }
       if (event.port.name === Ports.Port4) {
-        this.splitTimeStamp = this.game.clock.now();
+        this.timer.splitTime();
+        this.splitTimeStamp = this.timer.splitTimeMs;
       }
-      if (event.port.name === Ports.Port7) {
-        this.endTimeStamp = this.game.clock.now();
+      if (event.port.name === Ports.FinishPort) {
+        this.timer.stop();
+        this.endTimeStamp = this.timer.finishTimeMs;
         this.leaderBoard = await this.finishGame();
       }
     });
@@ -71,6 +84,7 @@ export class PumpFoilGame implements GameAdminstration, GameController {
     this.startTimeStamp = undefined;
     this.endTimeStamp = undefined;
     this.splitTimeStamp = undefined;
+    this.timer.reset();
   }
 
   initGame(gameEvent: InitGameMessage): void {
