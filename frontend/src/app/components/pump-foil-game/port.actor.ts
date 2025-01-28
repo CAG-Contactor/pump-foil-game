@@ -56,6 +56,7 @@ function labelY(rotationDegrees: number) {
 
 export class Port extends Actor {
   private _activeTarget = false
+  private updated = false;
   starboardBuoy: Actor
   portBuoy: Actor
   constructor(name: string, x: number, y: number, rotationDegrees: number) {
@@ -104,11 +105,12 @@ export class Port extends Actor {
 
   set activeTarget(value: boolean) {
     this._activeTarget = value;
+    this.updated = true;
   }
 
   override onCollisionStart(self: Collider, other: Collider, side: Side, contact: CollisionContact) {
     super.onCollisionStart(self, other, side, contact);
-    console.log("Port collision", other.owner.name);
+    console.log("Port collision", other.owner.name, self.owner.name);
     if (this.activeTarget) {
       portEvents.emit(PortEvents.PortPassed, new PortPassedEvent(this));
     }
@@ -116,6 +118,10 @@ export class Port extends Actor {
 
   override update(engine: Engine, delta: number) {
     super.update(engine, delta);
+    if (!this.updated) {
+      return;
+    }
+    console.log("Updating port graphics", this.name, this._activeTarget)
     if (this._activeTarget) {
       (this.starboardBuoy.graphics.current as Circle).color = ACTIVE_STARBOARD_BUOY;
       (this.starboardBuoy.graphics.current as Circle).radius = 7;
@@ -127,6 +133,7 @@ export class Port extends Actor {
       (this.portBuoy.graphics.current as Circle).color = INACTIVE_PORT_BUOY;
       (this.portBuoy.graphics.current as Circle).radius = 5;
     }
+    this.updated = false;
   }
 }
 
