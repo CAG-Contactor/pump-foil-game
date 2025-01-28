@@ -60,7 +60,10 @@ export class PumpFoilGame implements GameAdminstration, GameController {
     this.ports.portsList.forEach(port => this.game.add(port));
 
     portEvents.on(PortEvents.PortPassed, async (event: PortPassedEvent) => {
-      console.log("Port Passed", event.port.name, this.game.clock.now())
+      console.log("Port Passed", event.port.name, this.game.clock.now(), this.gameRunning)
+      if (!this.gameRunning) {
+        return;
+      }
       this.ports.activateNextAfter(event.port.name)
       if (!this.gameRunning) {
         return;
@@ -76,6 +79,7 @@ export class PumpFoilGame implements GameAdminstration, GameController {
       if (event.port.name === PortName.FinishPort) {
         this.timer.stop();
         this.endTimeStamp = this.timer.finishTimeMs;
+        this.gameRunning = false;
         this.leaderBoard = await this.finishGame();
       }
     });
