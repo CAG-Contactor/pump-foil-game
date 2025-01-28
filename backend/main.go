@@ -66,6 +66,19 @@ func addContestant(contestant db.ContestantDTO) (*db.QueueItemDTO, error) {
 		return nil, err
 	}
 
+	queue, err := db.GetQueue(dbClient)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(queue) > 0 {
+		lastQueued := queue[len(queue)-1]
+
+		if dbContestant.Email == lastQueued.Contestant.Email {
+			return &db.QueueItemDTO{Timestamp: lastQueued.Timestamp, Contestant: contestant}, nil
+		}
+	}
+
 	queueItem, err := db.EnqueueContestant(dbClient, dbContestant.Id)
 	if err != nil {
 		return nil, err
