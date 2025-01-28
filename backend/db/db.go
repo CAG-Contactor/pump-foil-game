@@ -106,6 +106,17 @@ func GetContestant(client *mongo.Client, contestantId primitive.ObjectID) (*Cont
 	return &contestant, nil
 }
 
+func GetContestantByEmail(client *mongo.Client, email string) (*Contestant, error) {
+	collection := client.Database(foildb).Collection(contestantsCollection)
+	filter := bson.D{{Key: "email", Value: email}}
+	var contestant Contestant
+	err := collection.FindOne(context.TODO(), filter).Decode(&contestant)
+	if err != nil {
+		return nil, err
+	}
+	return &contestant, nil
+}
+
 func GetContestants(client *mongo.Client, getType GetContestantsType) ([]ContestantDTO, error) {
 	collection := client.Database(foildb).Collection(contestantsCollection)
 	result, err := collection.Find(context.TODO(), bson.D{})
@@ -265,7 +276,16 @@ func GetLeaderboard(client *mongo.Client) ([]LeaderboardEntryDTO, error) {
 		if err != nil {
 			return nil, err
 		}
-		leaderboardEntries = append(leaderboardEntries, LeaderboardEntryDTO{ContestantDTO{Email: leaderboardEntry.Email, Name: ""}, GameResultDTO{SplitTime: leaderboardEntry.SplitTime, EndTime: leaderboardEntry.EndTime}})
+
+		var contestant *Contestant
+		var name string = ""
+		if leaderboardEntry.Email != "" {
+			contestant, err = GetContestantByEmail(client, leaderboardEntry.Email)
+			if err == nil {
+				name = contestant.Name
+			}
+		}
+		leaderboardEntries = append(leaderboardEntries, LeaderboardEntryDTO{ContestantDTO{Email: leaderboardEntry.Email, Name: name}, GameResultDTO{SplitTime: leaderboardEntry.SplitTime, EndTime: leaderboardEntry.EndTime}})
 	}
 	return leaderboardEntries, nil
 }
