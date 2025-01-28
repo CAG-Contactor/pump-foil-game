@@ -9,9 +9,18 @@
 !include <logos/mongodb>
 !include <logos/macos>
 
+title CAG Contactor's pump foil experience
+footer CAG Contator 2025
 
 package "Pump foil" {
- [MPU6050]
+ rectangle MPU6050[
+    MPU-6050
+    ---
+    sensor with a
+    3-axes accelerometer
+    and a 3-axes gyroscope
+
+ ]
   rectangle "<$raspberry-pi><$python>\nRaspberry PI" as Pi
   Pi - [MPU6050]: I2C
 }
