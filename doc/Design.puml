@@ -3,7 +3,7 @@
 !include <logos/go>
 !include <logos/java>
 !include <logos/react>
-!include <logos/javascript>
+!include <logos/typescript>
 !include <logos/raspberry-pi>
 !include <logos/python>
 !include <logos/mongodb>
@@ -19,7 +19,6 @@ package "Pump foil" {
     sensor with a
     3-axes accelerometer
     and a 3-axes gyroscope
-
  ]
   rectangle "<$raspberry-pi><$python>\nRaspberry PI" as Pi
   Pi - [MPU6050]: I2C
@@ -27,7 +26,7 @@ package "Pump foil" {
 
 rectangle "Mac mini" as Mac {
     package "Game frontend" {
-        rectangle "<:surfer:>\n<$javascript>\nGame engine" as GameFront
+        rectangle "<:surfer:>\n<$typescript>\nExcalibur.js as\ngame engine" as GameFront
     }
 
 
