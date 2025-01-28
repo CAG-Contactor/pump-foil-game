@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start:frontend": "ng serve --port 23042",
+    "start:game-frontend": "ng serve --port 23042",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

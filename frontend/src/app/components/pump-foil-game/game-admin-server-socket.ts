@@ -1,10 +1,11 @@
 import {HttpClient} from "@angular/common/http";
 import {firstValueFrom} from "rxjs";
+import {DEFAULT_ADMIN_SERVER} from "./constants";
 import {GameAdminstration} from "./pump-foil-game";
 import {EndGameMessage, GameMessage, ServerSocketBase} from "./server-socket-base";
 
-const ADMIN_SERVER = "localhost:3003";
-const wsUrl = localStorage.getItem("game-admin-server-socket-url") ?? `ws://${ADMIN_SERVER}/api/v1/ws`
+
+const wsUrl = `ws://${localStorage.getItem("admin-server-url") ?? DEFAULT_ADMIN_SERVER}/api/v1/ws`
 
 export interface LeaderBoardEntry {
   result: {
@@ -24,11 +25,11 @@ export class GameAdminServerSocket extends ServerSocketBase {
 
   async finishGame(splitTime: number, endTime: number): Promise<Array<LeaderBoardEntry>> {
     const message: EndGameMessage = {type: "EndGame", splitTime, endTime};
-    return firstValueFrom(this.http.post<Array<LeaderBoardEntry>>(`http://${ADMIN_SERVER}/api/v1/game-finish`, message));
+    return firstValueFrom(this.http.post<Array<LeaderBoardEntry>>(`http://${DEFAULT_ADMIN_SERVER}/api/v1/game-finish`, message));
   }
 
   async getResutlist(): Promise<Array<LeaderBoardEntry>> {
-    return firstValueFrom(this.http.get<Array<LeaderBoardEntry>>(`http://${ADMIN_SERVER}/api/v1/leaderboard`));
+    return firstValueFrom(this.http.get<Array<LeaderBoardEntry>>(`http://${DEFAULT_ADMIN_SERVER}/api/v1/leaderboard`));
   }
 
   protected handleMessage(message: GameMessage) {

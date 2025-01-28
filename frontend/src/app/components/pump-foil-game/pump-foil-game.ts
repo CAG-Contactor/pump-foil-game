@@ -1,9 +1,10 @@
 import {HttpClient} from "@angular/common/http";
 import {Engine} from "excalibur";
+import {PortName} from "./constants";
 import {GameAdminServerSocket, LeaderBoardEntry} from "./game-admin-server-socket";
 import {GameControlServerSocket} from "./game-control-server-socket";
-import {addPorts, addWalls, createPorts, Ports} from "./main.scene";
-import {Port, portEvents, PortEvents, PortPassedEvent} from "./port.actor";
+import {addPorts, addWalls, createPorts} from "./main.scene";
+import {portEvents, PortEvents, PortPassedEvent, Ports} from "./port.actor";
 import {AbortGameMessage, EndGameMessage, InitGameMessage, PumpControlUpdateMessage} from "./server-socket-base";
 import {Surfer} from "./surfer.actor";
 import {TimerActor} from "./timer.actor";
@@ -32,8 +33,8 @@ export class PumpFoilGame implements GameAdminstration, GameController {
   private game!: Engine<any>;
   private surfer!: Surfer;
   private timer!: TimerActor;
+  private ports!: Ports;
   private leaderBoard: Array<LeaderBoardEntry> = [];
-  private ports: Array<Port> = [];
 
   constructor(private readonly http: HttpClient) {
     this.gameControlServerSocket = new GameControlServerSocket(this);
@@ -41,33 +42,38 @@ export class PumpFoilGame implements GameAdminstration, GameController {
   }
 
   init(): void {
+    if (this.game) {
+      return;
+    }
     // If no dimensions are specified, the game will fit to the screen.
     this.game = new Engine({
       canvasElementId: "pump-foil-game",
     });
+
+    this.ports = createPorts();
     this.surfer = new Surfer(PumpFoilGame.SURFER_X_INIT,PumpFoilGame.SURFER_Y_INIT, 90);
-    this.game.add(this.surfer)
     this.timer = new TimerActor(400,25, this.game);
+
+    this.game.add(this.surfer)
     this.game.add(this.timer)
     addWalls(this.game);
-    this.ports = createPorts();
-    this.ports.forEach(port => this.game.add(port));
-    addPorts(this.game);
+    this.ports.portsList.forEach(port => this.game.add(port));
 
     portEvents.on(PortEvents.PortPassed, async (event: PortPassedEvent) => {
       console.log("Port Passed", event.port.name, this.game.clock.now())
+      this.ports.activateNextAfter(event.port.name)
       if (!this.gameRunning) {
         return;
       }
-      if (event.port.name === Ports.StartPort) {
+      if (event.port.name === PortName.StartPort) {
         this.timer.start();
         this.startTimeStamp = this.timer.startTimeMs;
       }
-      if (event.port.name === Ports.Port4) {
+      if (event.port.name === PortName.Port4) {
         this.timer.splitTime();
         this.splitTimeStamp = this.timer.splitTimeMs;
       }
-      if (event.port.name === Ports.FinishPort) {
+      if (event.port.name === PortName.FinishPort) {
         this.timer.stop();
         this.endTimeStamp = this.timer.finishTimeMs;
         this.leaderBoard = await this.finishGame();
@@ -84,6 +90,7 @@ export class PumpFoilGame implements GameAdminstration, GameController {
     this.startTimeStamp = undefined;
     this.endTimeStamp = undefined;
     this.splitTimeStamp = undefined;
+    this.ports.reset()
     this.timer.reset();
   }
 

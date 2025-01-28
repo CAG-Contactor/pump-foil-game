@@ -1,4 +1,4 @@
-import {HttpClient, HttpClientModule} from "@angular/common/http";
+import {HttpClient,} from "@angular/common/http";
 import {Component, OnInit} from '@angular/core';
 import {PumpFoilGame} from "./pump-foil-game";
 
@@ -8,7 +8,7 @@ import {PumpFoilGame} from "./pump-foil-game";
   imports: [],
   template: `
     <div class="game">
-      <h1>The Pump Foil Game</h1>
+<!--      <h1>The Pump Foil Game</h1>-->
       <div class="canvas-wrapper">
         <canvas id="pump-foil-game"></canvas>
       </div>

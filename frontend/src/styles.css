@@ -39,3 +39,7 @@ button:active {
   flex-direction: column;
   gap: 1rem;
 }
+
+.testcolor {
+  color: #99cd99
+}
