@@ -251,7 +251,7 @@ func CreateOrUpdateLeaderboardEntry(client *mongo.Client, currentGame QueueItemD
 		}
 		return &entry, nil
 	} else {
-		entry = LeaderboardEntry{primitive.NewObjectID(), currentGame.Contestant.Email, gameResult.EndTime, gameResult.SplitTime}
+		entry = LeaderboardEntry{primitive.NewObjectID(), currentGame.Contestant.Email, gameResult.SplitTime, gameResult.EndTime}
 		_, err := collection.InsertOne(context.TODO(), entry)
 		if err != nil {
 			return nil, err
