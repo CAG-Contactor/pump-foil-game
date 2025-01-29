@@ -244,7 +244,7 @@ func CreateOrUpdateLeaderboardEntry(client *mongo.Client, currentGame QueueItemD
 	result := collection.FindOne(context.TODO(), filter).Decode(&entry)
 	if result == nil {
 		filter = bson.D{{Key: "_id", Value: entry.Id}}
-		update := bson.D{{Key: "$set", Value: bson.D{{Key: "EndTime", Value: gameResult.EndTime}, {Key: "SplitTime", Value: gameResult.SplitTime}}}}
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: "endTime", Value: gameResult.EndTime}, {Key: "splitTime", Value: gameResult.SplitTime}}}}
 		_, err := collection.UpdateOne(context.TODO(), filter, update)
 		if err != nil {
 			return nil, err
