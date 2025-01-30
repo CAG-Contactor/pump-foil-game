@@ -39,7 +39,7 @@ rectangle "Mac mini" as Mac {
     }
 
     package "Registration frontend" {
-        rectangle "<$react>\nAdmin frontend" as RegFront
+        rectangle "<$react>\nRegistration/\nAdmin frontend" as RegFront
     }
 }
 package "QR Scanner" {
@@ -49,14 +49,17 @@ package "QR Scanner" {
 }
 
 Pi-up->GameFront : WebSocket
-GameFront -- Back: REST
-Back -- DB: Players\ntimes
-RegFront -left- Back: REST
-CameraPi -- Back: REST
+GameFront --> Back: REST
+GameFront <-- Back: WebSocket
+Back --> DB: Players\ntimes
+RegFront -left-> Back: REST
+CameraPi --> Back: REST
 
 :User:-left- RegFront
 :User:-up- Camera
 
+Actor player
+player -up-> MPU6050: Pumping &\nControlling the foil
 
 
 @enduml
