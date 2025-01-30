@@ -106,8 +106,10 @@ export class Surfer extends Actor {
   }
 
   handleControlChange(pumpControlMessage: PumpControlUpdateMessage) {
+    console.log("handleControlChange", pumpControlMessage);
     if (pumpControlMessage.pumping) {
-      this.pumpCounter = this.pumpCounter + 1;
+      // this.pumpCounter = this.pumpCounter + 1;
+      this.pumpCounter = 1;
     }
     if (pumpControlMessage.turn != null) {
       this.turn = pumpControlMessage.turn;
