@@ -1,10 +1,17 @@
+export type ConnectionStatus = "Open"|"Error"|"Closed";
+
 export abstract class ServerSocketBase {
   private socket?: WebSocket;
+  private statusConnectionStatusListener: (status: ConnectionStatus) => void = (s)=>
+    console.log('WebSocket to server: %s; status:', this.webSocketUrl, s);
 
   constructor(private readonly webSocketUrl: string) {
     this.connectWebSocket();
   }
 
+  attachConnectionStatusListener(listener: (status: ConnectionStatus)=>void) {
+    this.statusConnectionStatusListener = listener
+  }
   private connectWebSocket(): void {
     console.log('Connecting to WebSocket server:', this.webSocketUrl);
     this.socket = new WebSocket(this.webSocketUrl);
@@ -12,7 +19,7 @@ export abstract class ServerSocketBase {
     this.socket.onopen = (event) => {
       const socket = this.socket;
       if (socket) {
-        console.log('WebSocket to server: %s; connection opened: %s', this.webSocketUrl, event);
+        this.handleConnectionEvent(event);
         socket.send(JSON.stringify({init: "OK"}));
       }
     };
@@ -34,7 +41,7 @@ export abstract class ServerSocketBase {
     this.socket.onclose = (event) => {
       const socket = this.socket;
       if (socket) {
-        console.log('WebSocket to server: %s; connection closed: %s', this.webSocketUrl, event);
+        this.handleConnectionEvent(event);
         this.socket = undefined;
         setTimeout(() => {
           this.connectWebSocket();
@@ -48,6 +55,20 @@ export abstract class ServerSocketBase {
         console.error('WebSocket to server: %s; error:', this.webSocketUrl, error);
       }
     };
+  }
+
+  private handleConnectionEvent(event: Event|CloseEvent) {
+    switch (event.type) {
+      case "open":
+        this.statusConnectionStatusListener("Open");
+        break;
+      case "error":
+        this.statusConnectionStatusListener("Error");
+        break;
+      case "close":
+        this.statusConnectionStatusListener("Closed");
+        break;
+    }
   }
 
   protected send(message: string): void {
