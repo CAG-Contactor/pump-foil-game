@@ -17,6 +17,7 @@ export abstract class ServerSocketBase {
     this.socket = new WebSocket(this.webSocketUrl);
 
     this.socket.onopen = (event) => {
+      console.error('onopen: %s; error:', this.webSocketUrl, event);
       const socket = this.socket;
       if (socket) {
         this.handleConnectionEvent(event);
@@ -39,6 +40,7 @@ export abstract class ServerSocketBase {
     };
 
     this.socket.onclose = (event) => {
+      console.error('onclose: %s; event:', this.webSocketUrl, event);
       const socket = this.socket;
       if (socket) {
         this.handleConnectionEvent(event);
@@ -50,6 +52,7 @@ export abstract class ServerSocketBase {
     };
 
     this.socket.onerror = (error) => {
+      console.error('onerror: %s; event:', this.webSocketUrl, error);
       const socket = this.socket;
       if (socket) {
         console.error('WebSocket to server: %s; error:', this.webSocketUrl, error);
