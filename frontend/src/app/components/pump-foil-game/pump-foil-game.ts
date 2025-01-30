@@ -124,7 +124,6 @@ export class PumpFoilGame implements GameAdminstration, GameController {
 
   abortGame(gameEvent: AbortGameMessage) {
     console.log('abortGame', gameEvent);
-
     this.stopAndResetGame();
   }
 
@@ -135,7 +134,8 @@ export class PumpFoilGame implements GameAdminstration, GameController {
 
   endGame(message: EndGameMessage) {
     console.log('endGame', message);
-    this.stopAndResetGame();
+    // TODO öppna leaderboard efter 30 s
+    // this.stopAndResetGame();
   }
 
   private async finishGame(): Promise<Array<LeaderBoardEntry>> {
