@@ -26,7 +26,7 @@ export class ConnectionStatusActor extends Actor {
     const adminText = new Text({
       text: "A",
       font: new Font({ size: 10, family: "Monospace" }),
-      color: Color.White
+      color: DISCONNECTED
     });
     this.adminConnectionIndicator.graphics.use(adminText);
 
@@ -43,7 +43,7 @@ export class ConnectionStatusActor extends Actor {
     const pumperText = new Text({
       text: "P",
       font: new Font({ size: 10, family: "Monospace" }),
-      color: Color.White
+      color: DISCONNECTED
     });
     this.pumperConnectionIndicator.graphics.use(pumperText);
 
