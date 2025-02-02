@@ -6,8 +6,8 @@ export function addWalls(game: Engine) {
   [
     {name: "left", x: 0, y: 0, width: 5, height: game.canvasHeight*2},
     {name: "top", x: 0, y: 0, width: game.canvasWidth*2, height: 5},
-    {name: "bottom", x: 0, y: game.canvasHeight, width: game.canvasWidth*2, height: 5},
-    {name: "right", x: game.canvasWidth, y: 0, width: 5, height: game.canvasHeight*2},
+    {name: "bottom", x: 0, y: game.drawHeight , width: game.canvasWidth*2, height: 5},
+    {name: "right", x: game.drawWidth , y: 0, width: 5, height: game.canvasHeight*2},
   ].forEach(({name, x, y, width, height}) => {
     console.log(name, x, y, width, height)
     game.add(new Actor({

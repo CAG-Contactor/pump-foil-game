@@ -1,4 +1,17 @@
-import {Actor, Canvas, Collider, CollisionContact, CollisionType, Engine, Input, Side, vec} from "excalibur";
+import {
+  Actor,
+  Animation,
+  Canvas,
+  Collider,
+  CollisionContact,
+  CollisionType,
+  Engine,
+  ImageSource,
+  Input,
+  Side,
+  SpriteSheet,
+  vec
+} from "excalibur";
 import {PumpControlUpdateMessage} from "./server-socket-base";
 
 export class Surfer extends Actor {
@@ -19,23 +32,39 @@ export class Surfer extends Actor {
   private pumpCounter: number = 0;
   private turn: "left"|"right"|null = null;
   private colliding: boolean = false;
+  private spriteSheet: SpriteSheet;
+  private surferAnimation: Animation;
+  private frameindex = 0
 
   constructor(x: number = 50, y: number = 150, initialDirection: number = 90) {
     super({
       name: "Surfer",
       x,
       y,
-      width: 40,
-      height: 10,
+      width: 16,
+      height: 16,
       z: 10
     });
     this.body.collisionType = CollisionType.Passive;
     this.direction = initialDirection;
+    const imageSource = new ImageSource("/pumper.sprite.png")
+    imageSource.load()
+    this.spriteSheet = SpriteSheet.fromImageSource({
+      image: imageSource,
+      grid: {
+        rows: 1,
+        columns: 3,
+        spriteWidth: 64,
+        spriteHeight: 64
+      }
+    });
+    this.surferAnimation = Animation.fromSpriteSheet(this.spriteSheet, [0,1,2], Number.MAX_SAFE_INTEGER);
   }
 
   override onInitialize(engine: ex.Engine) {
     // set as the "default" drawing
-    this.graphics.use(this.canvas);
+    //this.graphics.use(this.canvas);
+    this.graphics.use(this.surferAnimation)
   }
 
   override update(engine: Engine, delta: number) {
@@ -43,8 +72,9 @@ export class Surfer extends Actor {
     // Inner helpers
     const updateFromController = () => {
       if (this.pumpCounter > 0) {
+        this.frameindex = (this.frameindex + 1) % 2;
+        this.surferAnimation.goToFrame(this.frameindex);
         this.speed = this.speed + increase(this.speed, this.pumpCounter);
-        console.log("speed", this.speed, "pump", this.pumpCounter)
         this.pumpCounter = 0;
       }
 
@@ -65,9 +95,9 @@ export class Surfer extends Actor {
     // Method body
     if (this.running) {
       if (this.speed > 0.0) {
-        this.speed = this.speed - 0.1;
+        this.speed = this.speed - 0.5;
       } else if (this.speed < 0.0) {
-        this.speed = this.speed + 0.1;
+        this.speed = this.speed + 0.5;
       }
 
       updateFromController();
@@ -80,7 +110,13 @@ export class Surfer extends Actor {
       -(Math.cos(this.direction * (Math.PI / 180)))
     )
     this.vel = currentDirection.normalize().scale(this.speed);
-    this.rotation = currentDirection.toAngle();
+    this.rotation = currentDirection.toAngle() % (2*Math.PI);
+    const rot90deg = Math.PI/2;
+    const rot270deg = 3*Math.PI/2;
+    this.graphics.flipVertical = (this.rotation > rot90deg && this.rotation < rot270deg);
+    if (this.speed <= 0.0) {
+      this.surferAnimation.goToFrame(2); // Plurrad
+    }
   }
 
   override onCollisionStart(self: Collider, other: Collider, side: Side, contact: CollisionContact) {
@@ -108,7 +144,6 @@ export class Surfer extends Actor {
   handleControlChange(pumpControlMessage: PumpControlUpdateMessage) {
     console.log("handleControlChange", pumpControlMessage);
     if (pumpControlMessage.pumping) {
-      // this.pumpCounter = this.pumpCounter + 1;
       this.pumpCounter = 1;
     }
     if (pumpControlMessage.turn != null) {
@@ -125,19 +160,20 @@ export class Surfer extends Actor {
     this.pumpCounter = 0;
   }
 }
+
 function increase(currentSpeed: number, pumpCounter: number) {
     if (currentSpeed < 5) {
       return pumpCounter*5
     } else if (currentSpeed < 10) {
-      return pumpCounter*10
+      return pumpCounter*13
     } else if (currentSpeed < 20) {
-      return pumpCounter*10
+      return pumpCounter*13
     } else if (currentSpeed < 30) {
-      return pumpCounter*10
+      return pumpCounter*15
     } else if (currentSpeed < 40) {
-      return pumpCounter*5;
+      return pumpCounter*10;
     } else if (currentSpeed < 50) {
-      return pumpCounter*2;
+      return pumpCounter*5;
     } else if (currentSpeed < 60) {
       return 0;
     } else {
