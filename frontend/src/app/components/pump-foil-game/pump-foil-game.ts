@@ -55,8 +55,8 @@ export class PumpFoilGame implements GameAdminstration, GameController {
     // If no dimensions are specified, the game will fit to the screen.
     this.game = new Engine({
       canvasElementId: "pump-foil-game",
-      width: 800,
-      height: 600,
+      // width: 800,
+      // height: 600,
     });
 
     this.ports = createPorts();

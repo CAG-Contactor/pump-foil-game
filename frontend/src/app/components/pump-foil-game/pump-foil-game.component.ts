@@ -26,8 +26,8 @@ import {PumpFoilGame} from "./pump-foil-game";
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 600px;
-      width: 800px;
+      height: 100%;
+      width: 100%;
     }
   `
 })

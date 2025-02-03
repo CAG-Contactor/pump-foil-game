@@ -95,9 +95,9 @@ export class Surfer extends Actor {
     // Method body
     if (this.running) {
       if (this.speed > 0.0) {
-        this.speed = this.speed - 0.5;
+        this.speed = this.speed - 0.2;
       } else if (this.speed < 0.0) {
-        this.speed = this.speed + 0.5;
+        this.speed = this.speed + 0.2;
       }
 
       updateFromController();
