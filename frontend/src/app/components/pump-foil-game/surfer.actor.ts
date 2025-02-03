@@ -41,8 +41,8 @@ export class Surfer extends Actor {
       name: "Surfer",
       x,
       y,
-      width: 16,
-      height: 16,
+      width: 4,
+      height: 4,
       z: 10
     });
     this.body.collisionType = CollisionType.Passive;
